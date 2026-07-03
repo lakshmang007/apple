@@ -12,6 +12,8 @@ export interface Product {
   pastPrice: number; // in INR
   currentPrice: number; // in INR
   isCustom?: boolean;
+  color?: string;
+  isAvailable?: boolean;
 }
 
 export interface HistoricalIPhone {

@@ -11,18 +11,31 @@ interface EditDialogProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, updatedPastPrice: number, updatedCurrentPrice: number) => void;
+  onSave: (
+    id: string, 
+    updatedPastPrice: number, 
+    updatedCurrentPrice: number, 
+    updatedNotes: string, 
+    updatedColor: string, 
+    updatedIsAvailable: boolean
+  ) => void;
 }
 
 export default function EditDialog({ product, isOpen, onClose, onSave }: EditDialogProps) {
   const [pastPrice, setPastPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [notes, setNotes] = useState<string>('');
+  const [color, setColor] = useState<string>('');
+  const [isAvailable, setIsAvailable] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (product) {
       setPastPrice(product.pastPrice);
       setCurrentPrice(product.currentPrice);
+      setNotes(product.notes || '');
+      setColor(product.color || 'Standard');
+      setIsAvailable(product.isAvailable !== false);
       setError('');
     }
   }, [product, isOpen]);
@@ -38,13 +51,16 @@ export default function EditDialog({ product, isOpen, onClose, onSave }: EditDia
       setError('Prices cannot be negative values.');
       return;
     }
-    onSave(product.id, pastPrice, currentPrice);
+    onSave(product.id, pastPrice, currentPrice, notes.trim(), color.trim() || 'Standard', isAvailable);
     onClose();
   };
 
   const handleReset = () => {
     setPastPrice(product.pastPrice);
     setCurrentPrice(product.currentPrice);
+    setNotes(product.notes || '');
+    setColor(product.color || 'Standard');
+    setIsAvailable(product.isAvailable !== false);
     setError('');
   };
 
@@ -69,7 +85,7 @@ export default function EditDialog({ product, isOpen, onClose, onSave }: EditDia
       <div className="bg-white w-full max-w-lg border border-slate-200 flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200">
+        <div className="flex items-center justify-between px-5 sm:px-8 py-5 border-b border-slate-200">
           <div>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-100 text-slate-600 uppercase tracking-wider">
               {product.category}
@@ -88,17 +104,52 @@ export default function EditDialog({ product, isOpen, onClose, onSave }: EditDia
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSave} className="p-8 flex-1 overflow-y-auto space-y-6">
+        <form onSubmit={handleSave} className="p-5 sm:p-8 flex-1 overflow-y-auto space-y-6">
           
           <div className="text-xs text-slate-500 font-mono">
             MODEL: {product.model} ({product.baseConfig})
           </div>
 
-          {product.notes && (
-            <div className="bg-slate-50 border-l-4 border-slate-300 p-3">
-              <p className="text-xs text-slate-600 italic">“{product.notes}”</p>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+              Description / Remarks
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
+              placeholder="Enter product description or remarks"
+              rows={2}
+            />
+          </div>
+
+          {/* Color Option */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+              Color Option
+            </label>
+            <input
+              type="text"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
+              placeholder="Enter color name"
+            />
+          </div>
+
+          {/* Availability Status */}
+          <div className="flex items-center gap-2 py-1">
+            <input
+              type="checkbox"
+              id="edit-is-available"
+              checked={isAvailable}
+              onChange={(e) => setIsAvailable(e.target.checked)}
+              className="w-4 h-4 text-slate-900 border-slate-350 focus:ring-slate-900 cursor-pointer rounded-xs"
+            />
+            <label htmlFor="edit-is-available" className="text-xs font-mono font-bold text-slate-700 uppercase tracking-widest cursor-pointer select-none">
+              Product is currently available
+            </label>
+          </div>
 
           {error && (
             <div className="p-4 bg-rose-50 text-rose-800 border-l-4 border-rose-500 flex items-start gap-2 text-xs font-mono font-medium">

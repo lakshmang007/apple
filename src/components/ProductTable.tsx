@@ -16,6 +16,7 @@ interface ProductTableProps {
   onDeleteProduct: (id: string) => void;
   onResetAll: () => void;
   onImportData: (imported: Product[]) => void;
+  onToggleAvailability: (id: string) => void;
 }
 
 export default function ProductTable({ 
@@ -23,7 +24,8 @@ export default function ProductTable({
   onEditClick, 
   onDeleteProduct, 
   onResetAll,
-  onImportData
+  onImportData,
+  onToggleAvailability
 }: ProductTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -205,7 +207,7 @@ export default function ProductTable({
             <button
               key={`bento-${cat.label}`}
               onClick={() => setSelectedCategory(cat.label)}
-              className={`text-left p-4 border transition-all cursor-pointer group flex flex-col justify-between ${
+              className={`text-left p-3 sm:p-4 border transition-all cursor-pointer group flex flex-col justify-between ${
                 isSelected 
                   ? 'bg-slate-900 border-slate-900 text-white' 
                   : 'bg-white border-slate-200 hover:border-slate-400 text-slate-800'
@@ -247,7 +249,7 @@ export default function ProductTable({
       <div className="bg-white border border-slate-200" id="product-table-card">
         
         {/* Search and Filters Section */}
-        <div className="p-6 md:p-8 border-b border-slate-200 space-y-6">
+        <div className="p-4 sm:p-6 md:p-8 border-b border-slate-200 space-y-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-1">
               <h3 className="text-base font-bold tracking-widest text-slate-900 uppercase">
@@ -404,7 +406,7 @@ export default function ProductTable({
               Object.keys(groupedProducts).map((catName) => {
                 const groupItems = groupedProducts[catName];
                 return (
-                  <div key={`group-${catName}`} className="p-6 md:p-8 space-y-4">
+                  <div key={`group-${catName}`} className="p-4 sm:p-6 md:p-8 space-y-4">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <span className="p-1.5 bg-slate-100 text-slate-800">
                         {getCategoryIcon(catName)}
@@ -421,9 +423,11 @@ export default function ProductTable({
                           <tr className="border-b border-slate-200 text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">
                             <th className="py-2.5 px-4">Product Name</th>
                             <th className="py-2.5 px-4">Configuration</th>
+                            <th className="py-2.5 px-4">Color</th>
                             <th className="py-2.5 px-4 text-right">Past MRP (₹)</th>
                             <th className="py-2.5 px-4 text-right">Current MRP (₹)</th>
                             <th className="py-2.5 px-4 text-center">Net Offset (₹)</th>
+                            <th className="py-2.5 px-4 text-center">Status</th>
                             <th className="py-2.5 px-4 text-center">Operation</th>
                           </tr>
                         </thead>
@@ -436,6 +440,7 @@ export default function ProductTable({
                               onDeleteProduct={onDeleteProduct} 
                               getCategoryIcon={getCategoryIcon}
                               formatINR={formatINR}
+                              onToggleAvailability={onToggleAvailability}
                             />
                           ))}
                         </tbody>
@@ -452,6 +457,7 @@ export default function ProductTable({
                           onDeleteProduct={onDeleteProduct} 
                           getCategoryIcon={getCategoryIcon}
                           formatINR={formatINR}
+                          onToggleAvailability={onToggleAvailability}
                         />
                       ))}
                     </div>
@@ -470,16 +476,18 @@ export default function ProductTable({
                   <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">
                     <th className="py-4 px-6">Product</th>
                     <th className="py-4 px-5">Configuration</th>
+                    <th className="py-4 px-5">Color</th>
                     <th className="py-4 px-5 text-right">Past MRP (₹)</th>
                     <th className="py-4 px-5 text-right">Current MRP (₹)</th>
                     <th className="py-4 px-5 text-center">Net Offset (₹)</th>
+                    <th className="py-4 px-5 text-center">Status</th>
                     <th className="py-4 px-6 text-center">Operation</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-16 text-center text-slate-400 font-mono">
+                      <td colSpan={8} className="py-16 text-center text-slate-400 font-mono">
                         No products matched the active filter query.
                       </td>
                     </tr>
@@ -492,6 +500,7 @@ export default function ProductTable({
                         onDeleteProduct={onDeleteProduct} 
                         getCategoryIcon={getCategoryIcon}
                         formatINR={formatINR}
+                        onToggleAvailability={onToggleAvailability}
                       />
                     ))
                   )}
@@ -515,6 +524,7 @@ export default function ProductTable({
                       onDeleteProduct={onDeleteProduct} 
                       getCategoryIcon={getCategoryIcon}
                       formatINR={formatINR}
+                      onToggleAvailability={onToggleAvailability}
                     />
                   ))}
                 </div>
@@ -536,9 +546,17 @@ interface ProductRowProps {
   onDeleteProduct: (id: string) => void;
   getCategoryIcon: (category: string) => React.ReactNode;
   formatINR: (value: number) => string;
+  onToggleAvailability: (id: string) => void;
 }
 
-function ProductRow({ product, onEditClick, onDeleteProduct, getCategoryIcon, formatINR }: ProductRowProps) {
+function ProductRow({ 
+  product, 
+  onEditClick, 
+  onDeleteProduct, 
+  getCategoryIcon, 
+  formatINR,
+  onToggleAvailability
+}: ProductRowProps) {
   const priceDiff = product.currentPrice - product.pastPrice;
   const percentDiff = product.pastPrice > 0 ? (priceDiff / product.pastPrice) * 100 : 0;
 
@@ -551,7 +569,7 @@ function ProductRow({ product, onEditClick, onDeleteProduct, getCategoryIcon, fo
             {getCategoryIcon(product.category)}
           </div>
           <div>
-            <div className="font-semibold text-slate-900 text-[13px] flex items-center gap-1.5">
+            <div className="font-semibold text-slate-900 text-[13px] flex items-center gap-1.5 flex-wrap">
               {product.model}
               {product.isCustom && (
                 <span className="text-[9px] font-mono font-bold bg-amber-50 text-amber-700 px-1.5 py-0.5 uppercase tracking-wider border border-amber-100">
@@ -572,6 +590,13 @@ function ProductRow({ product, onEditClick, onDeleteProduct, getCategoryIcon, fo
       <td className="py-4 px-5 text-slate-600 font-mono">
         <span className="px-2 py-1 bg-slate-50 text-slate-500 text-[11px] border border-slate-150">
           {product.baseConfig}
+        </span>
+      </td>
+
+      {/* Color */}
+      <td className="py-4 px-5 text-slate-600">
+        <span className="px-2 py-1 bg-slate-50 text-slate-500 text-[11px] border border-slate-150 rounded-sm font-medium">
+          {product.color || 'Standard'}
         </span>
       </td>
 
@@ -605,6 +630,21 @@ function ProductRow({ product, onEditClick, onDeleteProduct, getCategoryIcon, fo
             </span>
           </div>
         )}
+      </td>
+
+      {/* Availability Status */}
+      <td className="py-4 px-5 text-center">
+        <button
+          onClick={() => onToggleAvailability(product.id)}
+          className={`px-3 py-1 text-[10px] font-mono font-bold uppercase border transition-all cursor-pointer rounded-full ${
+            product.isAvailable !== false
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-250 hover:bg-emerald-100'
+              : 'bg-rose-50 text-rose-700 border-rose-250 hover:bg-rose-100'
+          }`}
+          title="Click to toggle availability"
+        >
+          {product.isAvailable !== false ? 'Available' : 'Unavailable'}
+        </button>
       </td>
 
       {/* Actions */}
@@ -642,9 +682,17 @@ interface ProductCardProps {
   onDeleteProduct: (id: string) => void;
   getCategoryIcon: (category: string) => React.ReactNode;
   formatINR: (value: number) => string;
+  onToggleAvailability: (id: string) => void;
 }
 
-function ProductCard({ product, onEditClick, onDeleteProduct, getCategoryIcon, formatINR }: ProductCardProps) {
+function ProductCard({ 
+  product, 
+  onEditClick, 
+  onDeleteProduct, 
+  getCategoryIcon, 
+  formatINR,
+  onToggleAvailability
+}: ProductCardProps) {
   const priceDiff = product.currentPrice - product.pastPrice;
   const percentDiff = product.pastPrice > 0 ? (priceDiff / product.pastPrice) * 100 : 0;
 
@@ -675,10 +723,15 @@ function ProductCard({ product, onEditClick, onDeleteProduct, getCategoryIcon, f
           </div>
         </div>
 
-        {/* Specs Badge */}
-        <span className="px-2 py-0.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold uppercase shrink-0">
-          {product.baseConfig}
-        </span>
+        {/* Specs & Color Badges */}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <span className="px-2 py-0.5 bg-slate-200 text-slate-600 text-[10px] font-mono font-bold uppercase">
+            {product.baseConfig}
+          </span>
+          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-mono border border-slate-200 rounded-xs whitespace-nowrap">
+            {product.color || 'Standard'}
+          </span>
+        </div>
       </div>
 
       {/* Pricing Information Stack */}
@@ -695,17 +748,27 @@ function ProductCard({ product, onEditClick, onDeleteProduct, getCategoryIcon, f
 
       {/* Bottom control panel */}
       <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-3">
-        {/* Price Offset Badge */}
-        <div>
-          {priceDiff === 0 ? (
-            <span className="text-[10px] font-mono text-slate-400 font-bold">UNCHANGED</span>
-          ) : (
-            <span className={`inline-flex items-center gap-1 font-mono text-[10px] font-bold px-2 py-1 ${
+        {/* Availability Toggle & Offset */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => onToggleAvailability(product.id)}
+            className={`px-2.5 py-1 text-[9px] font-mono font-bold uppercase border transition-all cursor-pointer rounded-full ${
+              product.isAvailable !== false
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-250 active:bg-emerald-100'
+                : 'bg-rose-50 text-rose-700 border-rose-250 active:bg-rose-100'
+            }`}
+            title="Click to toggle availability"
+          >
+            {product.isAvailable !== false ? '● Available' : '○ Unavailable'}
+          </button>
+          
+          {priceDiff !== 0 && (
+            <span className={`inline-flex items-center gap-0.5 font-mono text-[9px] font-bold px-1.5 py-0.5 ${
               priceDiff < 0 
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' 
-                : 'bg-rose-50 text-rose-800 border border-rose-100'
+                ? 'bg-emerald-50 text-emerald-800' 
+                : 'bg-rose-50 text-rose-800'
             }`}>
-              {priceDiff < 0 ? '↓' : '↑'} {formatINR(Math.abs(priceDiff))} ({percentDiff.toFixed(1)}%)
+              {priceDiff < 0 ? '↓' : '↑'} {formatINR(Math.abs(priceDiff))}
             </span>
           )}
         </div>

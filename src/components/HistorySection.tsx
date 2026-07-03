@@ -200,10 +200,10 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
     <div className="space-y-6">
       
       {/* Chart Section */}
-      <div className="bg-white p-8 border border-slate-200" id="history-chart-card">
+      <div className="bg-white p-4 sm:p-6 lg:p-8 border border-slate-200" id="history-chart-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h3 className="text-lg font-semibold tracking-tight text-slate-900 uppercase">
+            <h3 className="text-base sm:text-lg font-semibold tracking-tight text-slate-900 uppercase">
               iPhone India Pricing Trend (2008 – 2026)
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -212,15 +212,22 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
           </div>
           <button
             onClick={onResetAll}
-            className="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 px-4 py-2 transition-all cursor-pointer"
+            className="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 px-4 py-2 transition-all cursor-pointer self-start sm:self-auto"
           >
             <RotateCcw className="w-3.5 h-3.5 inline mr-1" />
             Reset Launch Catalog
           </button>
         </div>
 
+        {/* Mobile Swipe Helper Badge */}
+        <div className="block md:hidden mb-3 text-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 text-[10px] font-mono font-medium text-slate-400">
+            ← Swipe horizontally to view full trend →
+          </span>
+        </div>
+
         {/* Custom SVG Line Chart */}
-        <div className="relative overflow-x-auto select-none pt-2">
+        <div className="relative overflow-x-auto select-none pt-2 scrollbar-thin scrollbar-thumb-slate-200">
           <div className="min-w-[850px] relative">
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto overflow-visible">
               <defs>

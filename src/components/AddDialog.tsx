@@ -17,6 +17,8 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
   const [category, setCategory] = useState<string>('iPhone');
   const [model, setModel] = useState<string>('');
   const [baseConfig, setBaseConfig] = useState<string>('');
+  const [color, setColor] = useState<string>('Standard');
+  const [isAvailable, setIsAvailable] = useState<boolean>(true);
   const [pastPrice, setPastPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
@@ -42,6 +44,8 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
       pastPrice: pastPrice || 0,
       currentPrice: currentPrice || 0,
       notes: notes.trim(),
+      color: color.trim() || 'Standard',
+      isAvailable,
       isCustom: true
     });
 
@@ -49,6 +53,8 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
     setCategory('iPhone');
     setModel('');
     setBaseConfig('');
+    setColor('Standard');
+    setIsAvailable(true);
     setPastPrice(0);
     setCurrentPrice(0);
     setNotes('');
@@ -70,7 +76,7 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
       <div className="bg-white w-full max-w-lg border border-slate-200 flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200">
+        <div className="flex items-center justify-between px-5 sm:px-8 py-5 border-b border-slate-200">
           <div>
             <h3 className="text-lg font-semibold tracking-tight text-slate-900 uppercase">
               Add Custom Product Record
@@ -87,7 +93,7 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-y-auto space-y-5">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-8 flex-1 overflow-y-auto space-y-5">
           
           {error && (
             <div className="p-4 bg-rose-50 text-rose-800 border-l-4 border-rose-500 flex items-start gap-2 text-xs font-mono font-medium animate-fade-in">
@@ -144,6 +150,20 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
               />
             </div>
 
+            {/* Color Option */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+                Color Option
+              </label>
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
+                placeholder="e.g. Natural Titanium, Space Black"
+              />
+            </div>
+
             {/* Price Grid */}
             <div className="grid grid-cols-2 gap-4">
               {/* Past Price */}
@@ -195,6 +215,20 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
                 placeholder="e.g. Introductory discount applied"
                 rows={2}
               />
+            </div>
+
+            {/* Availability Option */}
+            <div className="flex items-center gap-2 py-2">
+              <input
+                type="checkbox"
+                id="add-is-available"
+                checked={isAvailable}
+                onChange={(e) => setIsAvailable(e.target.checked)}
+                className="w-4 h-4 text-slate-900 border-slate-350 focus:ring-slate-900 cursor-pointer rounded-xs"
+              />
+              <label htmlFor="add-is-available" className="text-xs font-mono font-bold text-slate-700 uppercase tracking-widest cursor-pointer select-none">
+                Product is currently available
+              </label>
             </div>
           </div>
 

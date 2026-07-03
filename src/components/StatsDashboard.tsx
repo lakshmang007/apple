@@ -44,7 +44,7 @@ export default function StatsDashboard({ products }: StatsDashboardProps) {
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[1px] bg-slate-200 border-b border-slate-200">
       {/* Total Assets / Products */}
-      <div className="bg-white p-8">
+      <div className="bg-white p-5 md:p-6 lg:p-8">
         <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Items Cataloged</p>
         <p className="text-3xl font-light font-mono text-slate-900">{totalProducts}</p>
         <p className="text-[10px] text-slate-400 font-mono mt-2">
@@ -53,7 +53,7 @@ export default function StatsDashboard({ products }: StatsDashboardProps) {
       </div>
 
       {/* Average/Net Price Shift */}
-      <div className="bg-white p-8">
+      <div className="bg-white p-5 md:p-6 lg:p-8">
         <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Net Price Shift</p>
         <p className={`text-3xl font-light font-mono ${netChange < 0 ? 'text-emerald-600' : netChange > 0 ? 'text-rose-500' : 'text-slate-500'}`}>
           {netChange > 0 ? '+' : ''}{formatINR(netChange)}
@@ -64,7 +64,7 @@ export default function StatsDashboard({ products }: StatsDashboardProps) {
       </div>
 
       {/* Highest Price Drop */}
-      <div className="bg-white p-8">
+      <div className="bg-white p-5 md:p-6 lg:p-8">
         <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Peak Discount</p>
         <p className="text-3xl font-light text-emerald-600 font-mono">
           {maxDropAmount > 0 ? `-${formatINR(maxDropAmount)}` : '₹0'}
@@ -75,7 +75,7 @@ export default function StatsDashboard({ products }: StatsDashboardProps) {
       </div>
 
       {/* Tax rate baseline or other KPI */}
-      <div className="bg-white p-8">
+      <div className="bg-white p-5 md:p-6 lg:p-8">
         <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Tax Rate (GST)</p>
         <p className="text-3xl font-light font-mono text-slate-900">18%</p>
         <p className="text-[10px] text-slate-400 font-mono mt-2">

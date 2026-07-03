@@ -11,7 +11,7 @@ import ProductTable from './components/ProductTable';
 import EditDialog from './components/EditDialog';
 import AddDialog from './components/AddDialog';
 import HistorySection from './components/HistorySection';
-import { Info, ShieldCheck } from 'lucide-react';
+import { Info, ShieldCheck, Menu } from 'lucide-react';
 
 const LOCAL_STORAGE_PRODUCTS_KEY = 'apple_tracker_products_v1';
 const LOCAL_STORAGE_HISTORY_KEY = 'apple_tracker_history_v1';
@@ -20,6 +20,7 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [historicalList, setHistoricalList] = useState<HistoricalIPhone[]>([]);
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Dialog States
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -33,12 +34,18 @@ export default function App() {
 
     if (savedProducts) {
       try {
-        setProducts(JSON.parse(savedProducts));
+        const parsed = JSON.parse(savedProducts);
+        // Ensure all loaded products have isAvailable and color defaults
+        setProducts(parsed.map((p: any) => ({
+          ...p,
+          isAvailable: p.isAvailable ?? true,
+          color: p.color ?? 'Standard'
+        })));
       } catch (e) {
-        setProducts(INITIAL_PRODUCTS);
+        setProducts(INITIAL_PRODUCTS.map(p => ({ ...p, isAvailable: true, color: 'Standard' })));
       }
     } else {
-      setProducts(INITIAL_PRODUCTS);
+      setProducts(INITIAL_PRODUCTS.map(p => ({ ...p, isAvailable: true, color: 'Standard' })));
     }
 
     if (savedHistory) {
@@ -64,13 +71,36 @@ export default function App() {
   };
 
   // Actions
-  const handleEditSave = (id: string, updatedPastPrice: number, updatedCurrentPrice: number) => {
+  const handleEditSave = (
+    id: string, 
+    updatedPastPrice: number, 
+    updatedCurrentPrice: number, 
+    updatedNotes: string, 
+    updatedColor: string, 
+    updatedIsAvailable: boolean
+  ) => {
     const updated = products.map(p => {
       if (p.id === id) {
         return {
           ...p,
           pastPrice: updatedPastPrice,
-          currentPrice: updatedCurrentPrice
+          currentPrice: updatedCurrentPrice,
+          notes: updatedNotes,
+          color: updatedColor,
+          isAvailable: updatedIsAvailable
+        };
+      }
+      return p;
+    });
+    saveProductsToStorage(updated);
+  };
+
+  const handleToggleAvailability = (id: string) => {
+    const updated = products.map(p => {
+      if (p.id === id) {
+        return {
+          ...p,
+          isAvailable: p.isAvailable === false ? true : false
         };
       }
       return p;
@@ -106,7 +136,7 @@ export default function App() {
 
   const handleResetCurrentCatalog = () => {
     if (confirm('Are you sure you want to revert all current prices to official Apple India MRP default seed values? This will remove custom added products too.')) {
-      saveProductsToStorage(INITIAL_PRODUCTS);
+      saveProductsToStorage(INITIAL_PRODUCTS.map(p => ({ ...p, isAvailable: true, color: 'Standard' })));
     }
   };
 
@@ -117,14 +147,29 @@ export default function App() {
   };
 
   const handleImportProducts = (imported: Product[]) => {
-    saveProductsToStorage(imported);
+    const defaultified = imported.map(p => ({
+      ...p,
+      isAvailable: p.isAvailable ?? true,
+      color: p.color ?? 'Standard'
+    }));
+    saveProductsToStorage(defaultified);
   };
 
   return (
     <div className="flex flex-col lg:flex-row h-screen w-full bg-slate-50 font-sans text-slate-800 overflow-hidden" id="app-root">
       
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-950/65 backdrop-blur-xs z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Left Sidebar: Structural Anchor */}
-      <aside className="w-full lg:w-64 bg-slate-900 text-white flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800 shrink-0">
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col border-r border-slate-800 transition-transform duration-300 lg:static lg:translate-x-0 lg:flex shrink-0 ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div className="p-8 border-b border-slate-800">
           <div className="w-10 h-10 bg-white flex items-center justify-center mb-4 text-slate-900 font-bold text-2xl">
             
@@ -135,7 +180,10 @@ export default function App() {
         
         <nav className="flex-1 px-4 py-8 space-y-2">
           <button
-            onClick={() => setActiveTab('current')}
+            onClick={() => {
+              setActiveTab('current');
+              setIsSidebarOpen(false);
+            }}
             className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all cursor-pointer ${
               activeTab === 'current'
                 ? 'bg-white/10 border-l-4 border-white font-medium text-white'
@@ -146,7 +194,10 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => {
+              setActiveTab('history');
+              setIsSidebarOpen(false);
+            }}
             className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-white/10 border-l-4 border-white font-medium text-white'
@@ -166,9 +217,16 @@ export default function App() {
       <main className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* Top Header Bar */}
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0">
-          <div>
-            <h2 className="text-base font-bold uppercase tracking-widest text-slate-900">
+        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-10 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h2 className="text-sm sm:text-base font-bold uppercase tracking-widest text-slate-900">
               Apple Device Pricing
             </h2>
           </div>
@@ -180,7 +238,7 @@ export default function App() {
             {activeTab === 'current' && (
               <button
                 onClick={() => setIsAddOpen(true)}
-                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest transition-all cursor-pointer"
+                className="px-4 sm:px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap"
               >
                 Add Product
               </button>
@@ -205,6 +263,7 @@ export default function App() {
                 onDeleteProduct={handleDeleteProduct}
                 onResetAll={handleResetCurrentCatalog}
                 onImportData={handleImportProducts}
+                onToggleAvailability={handleToggleAvailability}
               />
             </div>
           ) : (

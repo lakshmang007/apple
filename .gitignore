@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+.venv/
+parse_data.py
+apple_prices.json

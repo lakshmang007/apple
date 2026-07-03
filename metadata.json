@@ -1,0 +1,6 @@
+{
+  "name": "Apple Product Price Tracker",
+  "description": "An interactive Apple product directory and price tracker for India. View official launch prices, edit current and past prices, and automatically calculate differences in Indian Rupees (₹).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

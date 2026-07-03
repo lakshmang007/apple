@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { HistoricalIPhone } from '../types';
-import { Calendar, Search, Edit2, RotateCcw, TrendingUp, TrendingDown, Check, X } from 'lucide-react';
+import { Calendar, Search, Edit2, RotateCcw, TrendingUp, TrendingDown, Check, X, Mic, MicOff, Sparkles } from 'lucide-react';
 
 interface HistorySectionProps {
   historicalList: HistoricalIPhone[];
@@ -18,6 +18,53 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
   const [hoveredPoint, setHoveredPoint] = useState<HistoricalIPhone | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [showNotification, setShowNotification] = useState<string | null>(null);
+
+  const triggerNotification = (message: string) => {
+    setShowNotification(message);
+    setTimeout(() => {
+      setShowNotification(null);
+    }, 3500);
+  };
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice Search is not supported in this browser. Please try Google Chrome or Safari.");
+      return;
+    }
+
+    if (isListening) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      triggerNotification("🎙️ Listening... Say launch year or model name (e.g. '2022', 'iPhone 14')");
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech Recognition Error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      const cleaned = transcript.replace(/\.$/g, '');
+      setSearchTerm(cleaned);
+      triggerNotification(`🎙️ Voice search matched: "${cleaned}"`);
+    };
+
+    recognition.start();
+  };
 
   // Filter historical list by search
   const filteredList = useMemo(() => {
@@ -319,8 +366,25 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
 
       {/* Directory and Editor Table */}
       <div className="bg-white border border-slate-200" id="history-table-container">
+        
+        {/* Floating Voice/Action Notifications inside directory */}
+        {showNotification && (
+          <div className="bg-slate-900 text-white px-6 py-3.5 text-xs font-mono flex items-center justify-between gap-3 border-b border-slate-800 animate-pulse">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>{showNotification}</span>
+            </div>
+            <button 
+              onClick={() => setShowNotification(null)}
+              className="text-slate-400 hover:text-white font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Sub-header */}
-        <div className="p-8 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-6 md:p-8 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-slate-50 border border-slate-200 text-slate-600">
               <Calendar className="w-5 h-5" />
@@ -331,21 +395,43 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="relative max-w-sm w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search historical records..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-xs border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50"
-            />
+          {/* Search bar with Integrated Voice Search */}
+          <div className="relative max-w-sm w-full flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search history by model or year..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 text-xs border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 font-sans"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={handleVoiceSearch}
+              className={`p-2.5 border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                isListening
+                  ? 'bg-rose-50 border-rose-300 text-rose-600 animate-pulse'
+                  : 'bg-white border-slate-200 hover:border-slate-400 text-slate-600'
+              }`}
+              title="Voice Search (Say model or year)"
+            >
+              {isListening ? <MicOff className="w-4 h-4 text-rose-600" /> : <Mic className="w-4 h-4 text-slate-600" />}
+            </button>
           </div>
         </div>
 
-        {/* Grid/Table List */}
-        <div className="overflow-x-auto">
+        {/* Desktop View: Grid/Table List */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">
@@ -468,6 +554,115 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
             </tbody>
           </table>
         </div>
+
+        {/* Mobile View: Touch-Friendly Card List */}
+        <div className="block md:hidden divide-y divide-slate-150 bg-white">
+          {displayList.length === 0 ? (
+            <div className="py-16 text-center text-slate-400 font-mono text-xs">
+              No historical entries matched the search query.
+            </div>
+          ) : (
+            <div className="p-4 space-y-3">
+              {displayList.map((item) => {
+                const isEditing = editingId === item.id;
+                const diff = item.diff ?? 0;
+                const pct = item.pct ?? 0;
+
+                return (
+                  <div key={`hist-card-${item.id}`} className="bg-slate-50/50 p-4 border border-slate-200 space-y-3">
+                    {/* Header: Year & Model */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-mono font-bold">
+                          {item.year}
+                        </span>
+                        <span className="font-bold text-slate-900 text-xs">
+                          {item.model}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 border border-slate-150">
+                        {item.baseStorage}
+                      </span>
+                    </div>
+
+                    {/* Launch Price Row */}
+                    <div className="bg-white p-3 border border-slate-150 flex items-center justify-between">
+                      <div>
+                        <span className="text-[9px] font-mono text-slate-400 uppercase block">Launch MRP</span>
+                        {isEditing ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-slate-400 text-xs">₹</span>
+                            <input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(Number(e.target.value))}
+                              className="w-24 px-2 py-1 text-xs border border-slate-300 text-right focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEdit(item.id);
+                                else if (e.key === 'Escape') setEditingId(null);
+                              }}
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <span className="font-mono text-sm text-slate-900 font-bold">
+                            {formatINR(item.launchPrice)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Pricing shift compare badge */}
+                      <div>
+                        <span className="text-[9px] font-mono text-slate-400 uppercase block text-right">Offset</span>
+                        {diff === 0 ? (
+                          <span className="text-slate-400 font-mono text-[10px] block text-right">—</span>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1 font-mono text-[10px] font-bold px-1.5 py-0.5 ${
+                            diff > 0 
+                              ? 'bg-rose-50 text-rose-800 border border-rose-100' 
+                              : 'bg-emerald-50 text-emerald-800 border border-emerald-100'
+                          }`}>
+                            {diff > 0 ? '↑' : '↓'} {formatINR(Math.abs(diff))} ({diff > 0 ? '+' : ''}{pct.toFixed(1)}%)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Operation Panel */}
+                    <div className="flex justify-end border-t border-slate-200/60 pt-2">
+                      {isEditing ? (
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => handleSaveEdit(item.id)}
+                            className="px-3 py-1.5 bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider cursor-pointer flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditing(item)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer h-8"
+                        >
+                          <Edit2 className="w-3 h-3 text-slate-400" />
+                          Modify Price
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

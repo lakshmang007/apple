@@ -3,6 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface ProductVariant {
+  id: string;
+  baseConfig: string;
+  pastPrice: number;
+  currentPrice: number;
+  color?: string;
+  isAvailable?: boolean;
+}
+
 export interface Product {
   id: string;
   category: string; // 'iPhone' | 'iPad' | 'Mac' | 'Apple Watch' | 'AirPods' | 'TV & Accessories'
@@ -14,6 +23,8 @@ export interface Product {
   isCustom?: boolean;
   color?: string;
   isAvailable?: boolean;
+  variants?: ProductVariant[];
+  selectedVariantId?: string;
 }
 
 export interface HistoricalIPhone {

@@ -12,20 +12,24 @@ import {
 
 interface ProductTableProps {
   products: Product[];
+  selectedProductId: string | null;
   onEditClick: (product: Product) => void;
   onDeleteProduct: (id: string) => void;
   onResetAll: () => void;
   onImportData: (imported: Product[]) => void;
   onToggleAvailability: (id: string) => void;
+  onProductSelect: (product: Product) => void;
 }
 
 export default function ProductTable({ 
   products, 
+  selectedProductId,
   onEditClick, 
   onDeleteProduct, 
   onResetAll,
   onImportData,
-  onToggleAvailability
+  onToggleAvailability,
+  onProductSelect
 }: ProductTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -426,6 +430,7 @@ export default function ProductTable({
                             <th className="py-2.5 px-4">Color</th>
                             <th className="py-2.5 px-4 text-right">Past MRP (₹)</th>
                             <th className="py-2.5 px-4 text-right">Current MRP (₹)</th>
+                            <th className="py-2.5 px-4 text-right">EMI (24 Mo)</th>
                             <th className="py-2.5 px-4 text-center">Net Offset (₹)</th>
                             <th className="py-2.5 px-4 text-center">Status</th>
                             <th className="py-2.5 px-4 text-center">Operation</th>
@@ -436,11 +441,13 @@ export default function ProductTable({
                             <ProductRow 
                               key={`grouped-${p.id}`} 
                               product={p} 
+                              isSelected={p.id === selectedProductId}
                               onEditClick={onEditClick} 
                               onDeleteProduct={onDeleteProduct} 
                               getCategoryIcon={getCategoryIcon}
                               formatINR={formatINR}
                               onToggleAvailability={onToggleAvailability}
+                              onProductSelect={onProductSelect}
                             />
                           ))}
                         </tbody>
@@ -453,11 +460,13 @@ export default function ProductTable({
                         <ProductCard 
                           key={`grouped-card-${p.id}`} 
                           product={p} 
+                          isSelected={p.id === selectedProductId}
                           onEditClick={onEditClick} 
                           onDeleteProduct={onDeleteProduct} 
                           getCategoryIcon={getCategoryIcon}
                           formatINR={formatINR}
                           onToggleAvailability={onToggleAvailability}
+                          onProductSelect={onProductSelect}
                         />
                       ))}
                     </div>
@@ -479,6 +488,7 @@ export default function ProductTable({
                     <th className="py-4 px-5">Color</th>
                     <th className="py-4 px-5 text-right">Past MRP (₹)</th>
                     <th className="py-4 px-5 text-right">Current MRP (₹)</th>
+                    <th className="py-4 px-5 text-right">EMI (24 Mo)</th>
                     <th className="py-4 px-5 text-center">Net Offset (₹)</th>
                     <th className="py-4 px-5 text-center">Status</th>
                     <th className="py-4 px-6 text-center">Operation</th>
@@ -487,7 +497,7 @@ export default function ProductTable({
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-16 text-center text-slate-400 font-mono">
+                      <td colSpan={9} className="py-16 text-center text-slate-400 font-mono">
                         No products matched the active filter query.
                       </td>
                     </tr>
@@ -496,11 +506,13 @@ export default function ProductTable({
                       <ProductRow 
                         key={`unified-${p.id}`} 
                         product={p} 
+                        isSelected={p.id === selectedProductId}
                         onEditClick={onEditClick} 
                         onDeleteProduct={onDeleteProduct} 
                         getCategoryIcon={getCategoryIcon}
                         formatINR={formatINR}
                         onToggleAvailability={onToggleAvailability}
+                        onProductSelect={onProductSelect}
                       />
                     ))
                   )}
@@ -520,11 +532,13 @@ export default function ProductTable({
                     <ProductCard 
                       key={`unified-card-${p.id}`} 
                       product={p} 
+                      isSelected={p.id === selectedProductId}
                       onEditClick={onEditClick} 
                       onDeleteProduct={onDeleteProduct} 
                       getCategoryIcon={getCategoryIcon}
                       formatINR={formatINR}
                       onToggleAvailability={onToggleAvailability}
+                      onProductSelect={onProductSelect}
                     />
                   ))}
                 </div>
@@ -542,26 +556,39 @@ export default function ProductTable({
 interface ProductRowProps {
   key?: React.Key;
   product: Product;
+  isSelected: boolean;
   onEditClick: (product: Product) => void;
   onDeleteProduct: (id: string) => void;
   getCategoryIcon: (category: string) => React.ReactNode;
   formatINR: (value: number) => string;
   onToggleAvailability: (id: string) => void;
+  onProductSelect: (product: Product) => void;
 }
 
 function ProductRow({ 
   product, 
+  isSelected,
   onEditClick, 
   onDeleteProduct, 
   getCategoryIcon, 
   formatINR,
-  onToggleAvailability
+  onToggleAvailability,
+  onProductSelect
 }: ProductRowProps) {
   const priceDiff = product.currentPrice - product.pastPrice;
   const percentDiff = product.pastPrice > 0 ? (priceDiff / product.pastPrice) * 100 : 0;
 
   return (
-    <tr className="hover:bg-slate-50/60 transition-colors group">
+    <tr 
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button') || target.closest('a') || target.closest('input')) return;
+        onProductSelect(product);
+      }}
+      className={`hover:bg-slate-100/70 transition-colors group cursor-pointer ${
+        isSelected ? 'bg-slate-100/90 font-medium' : ''
+      }`}
+    >
       {/* Product Name & Category */}
       <td className="py-4 px-6">
         <div className="flex items-start gap-3">
@@ -571,6 +598,11 @@ function ProductRow({
           <div>
             <div className="font-semibold text-slate-900 text-[13px] flex items-center gap-1.5 flex-wrap">
               {product.model}
+              {product.variants && product.variants.length > 0 && (
+                <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 uppercase tracking-wider border border-indigo-100 rounded-xs">
+                  {product.variants.length} Variants
+                </span>
+              )}
               {product.isCustom && (
                 <span className="text-[9px] font-mono font-bold bg-amber-50 text-amber-700 px-1.5 py-0.5 uppercase tracking-wider border border-amber-100">
                   CUSTOM
@@ -608,6 +640,11 @@ function ProductRow({
       {/* Current Price */}
       <td className="py-4 px-5 text-right font-mono font-bold text-slate-900">
         {formatINR(product.currentPrice)}
+      </td>
+
+      {/* EMI (24 Mo) */}
+      <td className="py-4 px-5 text-right font-mono font-medium text-slate-700">
+        {formatINR(Math.round(product.currentPrice / 24))}/mo
       </td>
 
       {/* Price Shift */}
@@ -659,15 +696,13 @@ function ProductRow({
             Modify
           </button>
 
-          {product.isCustom && (
-            <button
-              onClick={() => onDeleteProduct(product.id)}
-              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
-              title="Delete Custom Product"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          )}
+          <button
+            onClick={() => onDeleteProduct(product.id)}
+            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
+            title="Delete Product from Catalog"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </td>
     </tr>
@@ -678,26 +713,39 @@ function ProductRow({
 interface ProductCardProps {
   key?: React.Key;
   product: Product;
+  isSelected: boolean;
   onEditClick: (product: Product) => void;
   onDeleteProduct: (id: string) => void;
   getCategoryIcon: (category: string) => React.ReactNode;
   formatINR: (value: number) => string;
   onToggleAvailability: (id: string) => void;
+  onProductSelect: (product: Product) => void;
 }
 
 function ProductCard({ 
   product, 
+  isSelected,
   onEditClick, 
   onDeleteProduct, 
   getCategoryIcon, 
   formatINR,
-  onToggleAvailability
+  onToggleAvailability,
+  onProductSelect
 }: ProductCardProps) {
   const priceDiff = product.currentPrice - product.pastPrice;
   const percentDiff = product.pastPrice > 0 ? (priceDiff / product.pastPrice) * 100 : 0;
 
   return (
-    <div className="bg-slate-50/50 p-4 border border-slate-200 flex flex-col justify-between space-y-4">
+    <div 
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button') || target.closest('a') || target.closest('input')) return;
+        onProductSelect(product);
+      }}
+      className={`bg-slate-50/50 p-4 border transition-all flex flex-col justify-between space-y-4 cursor-pointer hover:border-slate-400 ${
+        isSelected ? 'border-slate-900 bg-white ring-1 ring-slate-900 shadow-md' : 'border-slate-200'
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5">
           <div className="p-2 bg-white border border-slate-200 shrink-0 mt-0.5">
@@ -706,6 +754,11 @@ function ProductCard({
           <div>
             <h5 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
               {product.model}
+              {product.variants && product.variants.length > 0 && (
+                <span className="text-[8px] font-mono font-bold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 uppercase tracking-wider border border-indigo-100 rounded-xs">
+                  {product.variants.length} Variants
+                </span>
+              )}
               {product.isCustom && (
                 <span className="text-[8px] font-mono font-bold bg-amber-50 text-amber-700 px-1 py-0.5 uppercase tracking-wider border border-amber-100">
                   CUSTOM
@@ -735,7 +788,7 @@ function ProductCard({
       </div>
 
       {/* Pricing Information Stack */}
-      <div className="grid grid-cols-2 gap-2 bg-white p-3 border border-slate-150">
+      <div className="grid grid-cols-3 gap-2 bg-white p-3 border border-slate-150">
         <div>
           <span className="text-[9px] font-mono text-slate-400 uppercase block">Past Price</span>
           <span className="font-mono text-xs text-slate-500">{formatINR(product.pastPrice)}</span>
@@ -743,6 +796,10 @@ function ProductCard({
         <div>
           <span className="text-[9px] font-mono text-slate-400 uppercase block font-bold">Current MRP</span>
           <span className="font-mono text-sm text-slate-900 font-bold">{formatINR(product.currentPrice)}</span>
+        </div>
+        <div>
+          <span className="text-[9px] font-mono text-slate-400 uppercase block font-bold text-amber-700">EMI (24mo)</span>
+          <span className="font-mono text-xs text-slate-900 font-bold">{formatINR(Math.round(product.currentPrice / 24))}/mo</span>
         </div>
       </div>
 
@@ -783,15 +840,14 @@ function ProductCard({
             Modify
           </button>
           
-          {product.isCustom && (
-            <button
-              onClick={() => onDeleteProduct(product.id)}
-              className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-100 bg-white transition-all cursor-pointer h-10 w-10 flex items-center justify-center"
-              aria-label="Delete Custom Product"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            onClick={() => onDeleteProduct(product.id)}
+            className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-100 bg-white transition-all cursor-pointer h-10 w-10 flex items-center justify-center"
+            aria-label="Delete Product"
+            title="Delete Product from Catalog"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

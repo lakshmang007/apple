@@ -21,6 +21,7 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
   const [isAvailable, setIsAvailable] = useState<boolean>(true);
   const [pastPrice, setPastPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [variants, setVariants] = useState<{ baseConfig: string; pastPrice: number; currentPrice: number }[]>([]);
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -36,17 +37,44 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
       setError('Prices cannot be negative.');
       return;
     }
+    if (variants.some(v => v.currentPrice < 0 || v.pastPrice < 0)) {
+      setError('Variant prices cannot be negative.');
+      return;
+    }
+    if (variants.some(v => !v.baseConfig.trim())) {
+      setError('Variant configurations cannot be empty.');
+      return;
+    }
+
+    const mappedVariants = variants.map((v, index) => ({
+      id: `custom-var-${Date.now()}-${index}`,
+      baseConfig: v.baseConfig.trim(),
+      pastPrice: v.pastPrice || 0,
+      currentPrice: v.currentPrice || 0
+    }));
+
+    let finalCurrentPrice = currentPrice;
+    let finalPastPrice = pastPrice;
+    let finalBaseConfig = baseConfig;
+
+    if (mappedVariants.length > 0) {
+      finalCurrentPrice = mappedVariants[0].currentPrice;
+      finalPastPrice = mappedVariants[0].pastPrice;
+      finalBaseConfig = mappedVariants[0].baseConfig;
+    }
     
     onAdd({
       category,
       model: model.trim(),
-      baseConfig: baseConfig.trim() || '—',
-      pastPrice: pastPrice || 0,
-      currentPrice: currentPrice || 0,
+      baseConfig: finalBaseConfig.trim() || '—',
+      pastPrice: finalPastPrice || 0,
+      currentPrice: finalCurrentPrice || 0,
       notes: notes.trim(),
       color: color.trim() || 'Standard',
       isAvailable,
-      isCustom: true
+      isCustom: true,
+      variants: mappedVariants.length > 0 ? mappedVariants : undefined,
+      selectedVariantId: mappedVariants.length > 0 ? mappedVariants[0].id : undefined
     });
 
     // Reset fields
@@ -57,6 +85,7 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
     setIsAvailable(true);
     setPastPrice(0);
     setCurrentPrice(0);
+    setVariants([]);
     setNotes('');
     setError('');
     onClose();
@@ -135,19 +164,149 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
                 required
               />
             </div>
+            {variants.length === 0 && (
+              <>
+                {/* Base Configuration */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+                    Base Configuration / Specs
+                  </label>
+                  <input
+                    type="text"
+                    value={baseConfig}
+                    onChange={(e) => setBaseConfig(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
+                    placeholder="e.g. 256GB Storage, 8GB RAM"
+                  />
+                </div>
 
-            {/* Base Configuration */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
-                Base Configuration / Specs
-              </label>
-              <input
-                type="text"
-                value={baseConfig}
-                onChange={(e) => setBaseConfig(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
-                placeholder="e.g. 256GB Storage, 8GB RAM"
-              />
+                {/* Price Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Past Price */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+                      Past Price (INR ₹)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                      <input
+                        type="number"
+                        value={pastPrice || ''}
+                        onChange={(e) => setPastPrice(Number(e.target.value))}
+                        className="w-full pl-8 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 font-mono text-xs"
+                        placeholder="e.g. 119900"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Current Price */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
+                      Current Price (INR ₹)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                      <input
+                        type="number"
+                        value={currentPrice || ''}
+                        onChange={(e) => setCurrentPrice(Number(e.target.value))}
+                        className="w-full pl-8 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 font-mono text-xs"
+                        placeholder="e.g. 109900"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Variants Editor Block */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest">
+                  Configuration Variants
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVariants([...variants, { baseConfig: '', pastPrice: 0, currentPrice: 0 }]);
+                  }}
+                  className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-slate-150 hover:bg-slate-200 text-slate-700 transition-all border border-slate-200 cursor-pointer"
+                >
+                  + Add Variant
+                </button>
+              </div>
+
+              {variants.length > 0 && (
+                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  {variants.map((v, idx) => (
+                    <div key={idx} className="p-3 bg-slate-50 border border-slate-200 space-y-2 relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVariants(variants.filter((_, i) => i !== idx));
+                        }}
+                        className="absolute top-2 right-2 text-slate-400 hover:text-rose-600 text-xs font-bold cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                      
+                      <div className="text-[10px] font-mono font-bold text-slate-400">Variant #{idx + 1}</div>
+                      
+                      <div className="space-y-1">
+                        <input
+                          type="text"
+                          value={v.baseConfig}
+                          onChange={(e) => {
+                            const updated = [...variants];
+                            updated[idx].baseConfig = e.target.value;
+                            setVariants(updated);
+                          }}
+                          className="w-full px-3 py-1.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-white text-xs"
+                          placeholder="Spec details (e.g. 16GB RAM, 1TB SSD)"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px]">₹</span>
+                          <input
+                            type="number"
+                            value={v.pastPrice || ''}
+                            onChange={(e) => {
+                              const updated = [...variants];
+                              updated[idx].pastPrice = Number(e.target.value);
+                              setVariants(updated);
+                            }}
+                            className="w-full pl-6 pr-2 py-1.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-white font-mono text-xs"
+                            placeholder="Past Price"
+                            min="0"
+                            required
+                          />
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px]">₹</span>
+                          <input
+                            type="number"
+                            value={v.currentPrice || ''}
+                            onChange={(e) => {
+                              const updated = [...variants];
+                              updated[idx].currentPrice = Number(e.target.value);
+                              setVariants(updated);
+                            }}
+                            className="w-full pl-6 pr-2 py-1.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-white font-mono text-xs"
+                            placeholder="Current Price"
+                            min="0"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Color Option */}
@@ -162,45 +321,6 @@ export default function AddDialog({ isOpen, onClose, onAdd }: AddDialogProps) {
                 className="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 text-xs"
                 placeholder="e.g. Natural Titanium, Space Black"
               />
-            </div>
-
-            {/* Price Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Past Price */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
-                  Past Price (INR ₹)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                  <input
-                    type="number"
-                    value={pastPrice || ''}
-                    onChange={(e) => setPastPrice(Number(e.target.value))}
-                    className="w-full pl-8 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 font-mono text-xs"
-                    placeholder="e.g. 119900"
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              {/* Current Price */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block">
-                  Current Price (INR ₹)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                  <input
-                    type="number"
-                    value={currentPrice || ''}
-                    onChange={(e) => setCurrentPrice(Number(e.target.value))}
-                    className="w-full pl-8 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-slate-900 bg-slate-50/50 font-mono text-xs"
-                    placeholder="e.g. 109900"
-                    min="0"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Notes */}

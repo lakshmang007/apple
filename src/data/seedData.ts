@@ -15,6 +15,12 @@ export const INITIAL_PRODUCTS: Product[] = [
     notes: 'Titanium/aluminium unibody design',
     pastPrice: 139900,
     currentPrice: 134900,
+    variants: [
+      { id: 'iphone-17-pro-256gb', baseConfig: '256GB', pastPrice: 139900, currentPrice: 134900 },
+      { id: 'iphone-17-pro-512gb', baseConfig: '512GB', pastPrice: 159900, currentPrice: 154900 },
+      { id: 'iphone-17-pro-1tb', baseConfig: '1TB', pastPrice: 179900, currentPrice: 174900 }
+    ],
+    selectedVariantId: 'iphone-17-pro-256gb'
   },
   {
     id: 'iphone-air',
@@ -92,50 +98,78 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
 
   // Mac
+  // Mac
   {
     id: 'macbook-neo',
     category: 'Mac',
     model: 'MacBook Neo',
-    baseConfig: '256GB / 8GB',
-    notes: 'New for 2026, A18 Pro chip, education-focused',
+    baseConfig: '13" Liquid Retina, A18 Pro, 8GB / 256GB',
+    notes: 'Offer: ₹7,000 instant credit card cashback + exchange bonus up to ₹10,000.',
     pastPrice: 79900,
     currentPrice: 79900,
   },
   {
     id: 'macbook-air-m5',
     category: 'Mac',
-    model: 'MacBook Air',
-    baseConfig: 'M5, 256GB/16GB',
-    notes: '13-inch model',
-    pastPrice: 139900,
+    model: 'MacBook Air (M5)',
+    baseConfig: '13.6-inch, 16GB RAM, 512GB SSD',
+    notes: 'Offer: ₹7,000 instant credit card cashback + exchange bonus up to ₹10,000.',
+    pastPrice: 149900,
     currentPrice: 149900,
+    variants: [
+      { id: 'mba-m5-13-16gb-512gb', baseConfig: '13.6-inch, 16GB RAM, 512GB SSD', pastPrice: 149900, currentPrice: 149900 },
+      { id: 'mba-m5-15-16gb-512gb', baseConfig: '15.3-inch, 16GB RAM, 512GB SSD', pastPrice: 179900, currentPrice: 179900 }
+    ],
+    selectedVariantId: 'mba-m5-13-16gb-512gb'
   },
   {
     id: 'macbook-pro-m5',
     category: 'Mac',
-    model: 'MacBook Pro',
-    baseConfig: 'M5, 512GB/16GB',
-    notes: '14-inch model',
-    pastPrice: 229900,
+    model: 'MacBook Pro (14.2-inch, M5)',
+    baseConfig: '16GB RAM, 1TB SSD',
+    notes: 'Offer: ₹15,000 instant credit card cashback + exchange bonus up to ₹10,000.',
+    pastPrice: 239900,
     currentPrice: 239900,
+    variants: [
+      { id: 'mbp-m5-16gb-1tb', baseConfig: '16GB RAM, 1TB SSD', pastPrice: 239900, currentPrice: 239900 },
+      { id: 'mbp-m5-24gb-1tb', baseConfig: '24GB RAM, 1TB SSD', pastPrice: 263900, currentPrice: 263900 },
+      { id: 'mbp-m5-32gb-1tb', baseConfig: '32GB RAM, 1TB SSD', pastPrice: 287900, currentPrice: 287900 }
+    ],
+    selectedVariantId: 'mbp-m5-16gb-1tb'
   },
   {
-    id: 'imac-m',
+    id: 'macbook-pro-16-m5',
     category: 'Mac',
-    model: 'iMac',
-    baseConfig: 'M-series, 256GB',
-    notes: '24-inch all-in-one',
-    pastPrice: 169900,
-    currentPrice: 174900,
+    model: 'MacBook Pro (16.2-inch, M5 Pro/Max)',
+    baseConfig: 'M5 Pro, 24GB RAM, 1TB SSD',
+    notes: 'Offer: ₹15,000 instant credit card cashback + exchange bonus up to ₹10,000.',
+    pastPrice: 359900,
+    currentPrice: 359900,
+    variants: [
+      { id: 'mbp-16-m5-24gb-1tb', baseConfig: 'M5 Pro, 24GB RAM, 1TB SSD', pastPrice: 359900, currentPrice: 359900 },
+      { id: 'mbp-16-m5-48gb-1tb', baseConfig: 'M5 Pro, 48GB RAM, 1TB SSD', pastPrice: 431900, currentPrice: 431900 },
+      { id: 'mbp-16-m5-36gb-2tb', baseConfig: 'M5 Max, 36GB RAM, 2TB SSD', pastPrice: 539900, currentPrice: 539900 },
+      { id: 'mbp-16-m5-48gb-2tb', baseConfig: 'M5 Max, 48GB RAM, 2TB SSD', pastPrice: 619900, currentPrice: 619900 }
+    ],
+    selectedVariantId: 'mbp-16-m5-24gb-1tb'
   },
   {
-    id: 'mac-mini-m',
+    id: 'imac-m4',
     category: 'Mac',
-    model: 'Mac mini',
-    baseConfig: 'M-series, 256GB',
-    notes: 'Compact desktop',
-    pastPrice: 89900,
-    currentPrice: 94900,
+    model: 'iMac (M4)',
+    baseConfig: '24-inch 4.5K Retina, 16GB RAM, 256GB SSD',
+    notes: 'Offer: ₹5,000 instant credit card cashback.',
+    pastPrice: 199900,
+    currentPrice: 199900,
+  },
+  {
+    id: 'mac-mini-m4',
+    category: 'Mac',
+    model: 'Mac mini (M4)',
+    baseConfig: '16GB RAM, 512GB SSD',
+    notes: 'Offer: ₹5,000 instant credit card cashback.',
+    pastPrice: 118900,
+    currentPrice: 118900,
   },
   {
     id: 'mac-studio-m',

@@ -5,18 +5,22 @@
 
 import React, { useState, useMemo } from 'react';
 import { HistoricalIPhone } from '../types';
-import { Calendar, Search, Edit2, RotateCcw, TrendingUp, TrendingDown, Check, X, Mic, MicOff, Sparkles } from 'lucide-react';
+import { Calendar, Search, Edit2, RotateCcw, TrendingUp, TrendingDown, Check, X, Mic, MicOff, Sparkles, Trash2 } from 'lucide-react';
 
 interface HistorySectionProps {
   historicalList: HistoricalIPhone[];
-  onUpdatePrice: (id: string, newPrice: number) => void;
+  onUpdateHistory: (id: string, updatedFields: Partial<HistoricalIPhone>) => void;
+  onDeleteHistory: (id: string) => void;
   onResetAll: () => void;
 }
 
-export default function HistorySection({ historicalList, onUpdatePrice, onResetAll }: HistorySectionProps) {
+export default function HistorySection({ historicalList, onUpdateHistory, onDeleteHistory, onResetAll }: HistorySectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<number>(0);
+  const [editYear, setEditYear] = useState<number>(0);
+  const [editModel, setEditModel] = useState<string>('');
+  const [editStorage, setEditStorage] = useState<string>('');
+  const [editPrice, setEditPrice] = useState<number>(0);
   const [hoveredPoint, setHoveredPoint] = useState<HistoricalIPhone | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [showNotification, setShowNotification] = useState<string | null>(null);
@@ -175,12 +179,31 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
 
   const startEditing = (item: HistoricalIPhone) => {
     setEditingId(item.id);
-    setEditValue(item.launchPrice);
+    setEditYear(item.year);
+    setEditModel(item.model);
+    setEditStorage(item.baseStorage);
+    setEditPrice(item.launchPrice);
   };
 
   const handleSaveEdit = (id: string) => {
-    if (editValue < 0) return;
-    onUpdatePrice(id, editValue);
+    if (!editModel.trim()) {
+      alert("Model name is required.");
+      return;
+    }
+    if (editYear < 2007 || editYear > 2100) {
+      alert("Please enter a valid launch year (2007 or later).");
+      return;
+    }
+    if (editPrice <= 0) {
+      alert("Launch price must be greater than zero.");
+      return;
+    }
+    onUpdateHistory(id, {
+      year: editYear,
+      model: editModel.trim(),
+      baseStorage: editStorage.trim() || '—',
+      launchPrice: editPrice
+    });
     setEditingId(null);
   };
 
@@ -467,14 +490,36 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
                       {/* Year */}
                       <td className="py-4 px-6 font-mono font-semibold text-slate-600">
-                        <span className="px-2 py-1 bg-slate-50 text-slate-700 border border-slate-150">
-                          {item.year}
-                        </span>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editYear}
+                            onChange={(e) => setEditYear(Number(e.target.value))}
+                            className="w-16 px-1.5 py-1 border border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono text-xs"
+                            min="2007"
+                            max="2100"
+                            required
+                          />
+                        ) : (
+                          <span className="px-2 py-1 bg-slate-50 text-slate-700 border border-slate-150">
+                            {item.year}
+                          </span>
+                        )}
                       </td>
 
                       {/* Model */}
                       <td className="py-4 px-5 font-semibold text-slate-900">
-                        {item.model}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editModel}
+                            onChange={(e) => setEditModel(e.target.value)}
+                            className="w-full max-w-xs px-2 py-1 border border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-900 font-sans text-xs"
+                            required
+                          />
+                        ) : (
+                          item.model
+                        )}
                       </td>
 
                       {/* Launch Price */}
@@ -484,14 +529,15 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                             <span className="text-slate-400">₹</span>
                             <input
                               type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(Number(e.target.value))}
-                              className="w-28 px-2 py-1 border border-slate-300 text-right focus:outline-none focus:ring-1 focus:ring-slate-900"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(Number(e.target.value))}
+                              className="w-24 px-2 py-1 border border-slate-300 text-right focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono text-xs"
+                              min="1"
+                              required
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleSaveEdit(item.id);
                                 else if (e.key === 'Escape') setEditingId(null);
                               }}
-                              autoFocus
                             />
                           </div>
                         ) : (
@@ -501,7 +547,17 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
 
                       {/* Storage */}
                       <td className="py-4 px-5 text-right font-mono text-slate-400">
-                        {item.baseStorage}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editStorage}
+                            onChange={(e) => setEditStorage(e.target.value)}
+                            className="w-16 px-1.5 py-1 border border-slate-300 text-right focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono text-xs"
+                            required
+                          />
+                        ) : (
+                          item.baseStorage
+                        )}
                       </td>
 
                       {/* Pricing Shift (compared to previous) */}
@@ -532,7 +588,7 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                             <button
                               onClick={() => handleSaveEdit(item.id)}
                               className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer"
-                              title="Confirm Price"
+                              title="Save Changes"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -545,13 +601,22 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => startEditing(item)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer"
-                          >
-                            <Edit2 className="w-3 h-3 text-slate-400" />
-                            Modify
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => startEditing(item)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer"
+                            >
+                              <Edit2 className="w-3 h-3 text-slate-400" />
+                              Modify
+                            </button>
+                            <button
+                              onClick={() => onDeleteHistory(item.id)}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
+                              title="Delete Record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -579,17 +644,48 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                   <div key={`hist-card-${item.id}`} className="bg-slate-50/50 p-4 border border-slate-200 space-y-3">
                     {/* Header: Year & Model */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-mono font-bold">
-                          {item.year}
+                      {isEditing ? (
+                        <div className="flex gap-2 items-center flex-1 pr-4">
+                          <input
+                            type="number"
+                            value={editYear}
+                            onChange={(e) => setEditYear(Number(e.target.value))}
+                            className="w-16 px-1.5 py-1 text-xs border border-slate-300 font-mono"
+                            min="2007"
+                            max="2100"
+                            required
+                          />
+                          <input
+                            type="text"
+                            value={editModel}
+                            onChange={(e) => setEditModel(e.target.value)}
+                            className="flex-1 px-2 py-1 text-xs border border-slate-350 font-bold"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-mono font-bold">
+                            {item.year}
+                          </span>
+                          <span className="font-bold text-slate-900 text-xs">
+                            {item.model}
+                          </span>
+                        </div>
+                      )}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editStorage}
+                          onChange={(e) => setEditStorage(e.target.value)}
+                          className="w-16 px-1.5 py-1 text-xs border border-slate-350 text-right font-mono"
+                          required
+                        />
+                      ) : (
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 border border-slate-150">
+                          {item.baseStorage}
                         </span>
-                        <span className="font-bold text-slate-900 text-xs">
-                          {item.model}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 border border-slate-150">
-                        {item.baseStorage}
-                      </span>
+                      )}
                     </div>
 
                     {/* Launch Price Row */}
@@ -601,14 +697,14 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                             <span className="text-slate-400 text-xs">₹</span>
                             <input
                               type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(Number(e.target.value))}
-                              className="w-24 px-2 py-1 text-xs border border-slate-300 text-right focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(Number(e.target.value))}
+                              className="w-24 px-2 py-1 text-xs border border-slate-350 text-right focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono"
+                              required
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleSaveEdit(item.id);
                                 else if (e.key === 'Escape') setEditingId(null);
                               }}
-                              autoFocus
                             />
                           </div>
                         ) : (
@@ -636,7 +732,7 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                     </div>
 
                     {/* Operation Panel */}
-                    <div className="flex justify-end border-t border-slate-200/60 pt-2">
+                    <div className="flex justify-end gap-2 border-t border-slate-200/60 pt-2">
                       {isEditing ? (
                         <div className="flex gap-1.5">
                           <button
@@ -654,13 +750,22 @@ export default function HistorySection({ historicalList, onUpdatePrice, onResetA
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => startEditing(item)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer h-8"
-                        >
-                          <Edit2 className="w-3 h-3 text-slate-400" />
-                          Modify Price
-                        </button>
+                        <>
+                          <button
+                            onClick={() => startEditing(item)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer h-8"
+                          >
+                            <Edit2 className="w-3 h-3 text-slate-400" />
+                            Modify
+                          </button>
+                          <button
+                            onClick={() => onDeleteHistory(item.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-100 bg-white transition-all cursor-pointer h-8 w-8 flex items-center justify-center"
+                            title="Delete Record"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

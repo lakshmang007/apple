@@ -4,13 +4,15 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Product, HistoricalIPhone } from './types';
+import { Product, HistoricalIPhone, ProductVariant } from './types';
 import { INITIAL_PRODUCTS, INITIAL_HISTORICAL_IPHONES } from './data/seedData';
 import StatsDashboard from './components/StatsDashboard';
 import ProductTable from './components/ProductTable';
 import EditDialog from './components/EditDialog';
 import AddDialog from './components/AddDialog';
+import ProductDetailDrawer from './components/ProductDetailDrawer';
 import HistorySection from './components/HistorySection';
+import AddHistoryDialog from './components/AddHistoryDialog';
 import { Info, ShieldCheck, Menu } from 'lucide-react';
 
 const LOCAL_STORAGE_PRODUCTS_KEY = 'apple_tracker_products_v1';
@@ -26,6 +28,9 @@ export default function App() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddHistoryOpen, setIsAddHistoryOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Load from local storage
   useEffect(() => {
@@ -73,22 +78,59 @@ export default function App() {
   // Actions
   const handleEditSave = (
     id: string, 
+    updatedModel: string,
+    updatedCategory: string,
+    updatedBaseConfig: string,
     updatedPastPrice: number, 
     updatedCurrentPrice: number, 
     updatedNotes: string, 
     updatedColor: string, 
-    updatedIsAvailable: boolean
+    updatedIsAvailable: boolean,
+    updatedVariants?: ProductVariant[]
   ) => {
     const updated = products.map(p => {
       if (p.id === id) {
         return {
           ...p,
+          model: updatedModel,
+          category: updatedCategory,
+          baseConfig: updatedBaseConfig,
           pastPrice: updatedPastPrice,
           currentPrice: updatedCurrentPrice,
           notes: updatedNotes,
           color: updatedColor,
-          isAvailable: updatedIsAvailable
+          isAvailable: updatedIsAvailable,
+          variants: updatedVariants
         };
+      }
+      return p;
+    });
+    saveProductsToStorage(updated);
+
+    if (selectedProduct && selectedProduct.id === id) {
+      const updatedSel = updated.find(p => p.id === id);
+      if (updatedSel) {
+        setSelectedProduct(updatedSel);
+      }
+    }
+  };
+
+  const handleVariantSelect = (productId: string, variantId: string) => {
+    const updated = products.map(p => {
+      if (p.id === productId && p.variants) {
+        const variant = p.variants.find(v => v.id === variantId);
+        if (variant) {
+          const updatedProduct = {
+            ...p,
+            selectedVariantId: variantId,
+            baseConfig: variant.baseConfig,
+            currentPrice: variant.currentPrice,
+            pastPrice: variant.pastPrice,
+            color: variant.color ?? p.color
+          };
+          setSelectedProduct(updatedProduct);
+          return updatedProduct;
+        }
       }
       return p;
     });
@@ -118,19 +160,39 @@ export default function App() {
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this custom product from the catalog?')) {
+    if (confirm('Are you sure you want to delete this product from the catalog?')) {
       const updated = products.filter(p => p.id !== id);
       saveProductsToStorage(updated);
+      if (selectedProduct && selectedProduct.id === id) {
+        setIsDetailOpen(false);
+        setSelectedProduct(null);
+      }
     }
   };
 
-  const handleUpdateHistoricalPrice = (id: string, newPrice: number) => {
+  const handleUpdateHistorical = (id: string, updatedFields: Partial<HistoricalIPhone>) => {
     const updated = historicalList.map(h => {
       if (h.id === id) {
-        return { ...h, launchPrice: newPrice };
+        return { ...h, ...updatedFields };
       }
       return h;
     });
+    saveHistoryToStorage(updated);
+  };
+
+  const handleDeleteHistorical = (id: string) => {
+    if (confirm('Are you sure you want to delete this historical launch record?')) {
+      const updated = historicalList.filter(h => h.id !== id);
+      saveHistoryToStorage(updated);
+    }
+  };
+
+  const handleAddHistorical = (item: Omit<HistoricalIPhone, 'id'>) => {
+    const newItem: HistoricalIPhone = {
+      ...item,
+      id: `hist-${Date.now()}`
+    };
+    const updated = [...historicalList, newItem].sort((a, b) => a.year - b.year);
     saveHistoryToStorage(updated);
   };
 
@@ -235,12 +297,19 @@ export default function App() {
               <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Pricing Target</p>
               <p className="text-xs font-semibold text-slate-700">INDIA / INR (₹)</p>
             </div>
-            {activeTab === 'current' && (
+            {activeTab === 'current' ? (
               <button
                 onClick={() => setIsAddOpen(true)}
                 className="px-4 sm:px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap"
               >
                 Add Product
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsAddHistoryOpen(true)}
+                className="px-4 sm:px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap"
+              >
+                Add History Record
               </button>
             )}
           </div>
@@ -256,6 +325,7 @@ export default function App() {
             <div className="space-y-6">
               <ProductTable 
                 products={products}
+                selectedProductId={selectedProduct?.id ?? null}
                 onEditClick={(p) => {
                   setEditingProduct(p);
                   setIsEditOpen(true);
@@ -264,13 +334,18 @@ export default function App() {
                 onResetAll={handleResetCurrentCatalog}
                 onImportData={handleImportProducts}
                 onToggleAvailability={handleToggleAvailability}
+                onProductSelect={(p) => {
+                  setSelectedProduct(p);
+                  setIsDetailOpen(true);
+                }}
               />
             </div>
           ) : (
             <div className="space-y-6">
               <HistorySection 
                 historicalList={historicalList}
-                onUpdatePrice={handleUpdateHistoricalPrice}
+                onUpdateHistory={handleUpdateHistorical}
+                onDeleteHistory={handleDeleteHistorical}
                 onResetAll={handleResetHistory}
               />
             </div>
@@ -332,6 +407,22 @@ export default function App() {
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onAdd={handleAddProduct}
+      />
+
+      <AddHistoryDialog 
+        isOpen={isAddHistoryOpen}
+        onClose={() => setIsAddHistoryOpen(false)}
+        onAdd={handleAddHistorical}
+      />
+
+      <ProductDetailDrawer 
+        product={selectedProduct}
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedProduct(null);
+        }}
+        onVariantSelect={handleVariantSelect}
       />
 
     </div>

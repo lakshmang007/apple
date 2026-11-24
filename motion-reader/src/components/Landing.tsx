@@ -17,6 +17,7 @@ import { demoComic } from '../lib/demo';
 import { useElementSize } from '../lib/hooks';
 import { ACCEPT } from '../lib/loaders';
 import { getPanels } from '../lib/panelDetect';
+import { FreeComics } from './FreeComics';
 import { Logo } from './Logo';
 import type { PageImage, Panel } from '../types';
 
@@ -174,6 +175,7 @@ export function Landing({
   const nav = [
     { href: '#open', label: 'Open a file or link' },
     { href: '#demos', label: 'Demos' },
+    { href: '#free', label: 'Find free comics' },
     { href: '#features', label: 'Features' },
     { href: '#how', label: 'How it works' },
   ];
@@ -396,6 +398,8 @@ export function Landing({
                 ))}
               </div>
             </section>
+
+            <FreeComics />
 
             <section id="features" className="space-y-3 pt-4">
               <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900">Features</h2>

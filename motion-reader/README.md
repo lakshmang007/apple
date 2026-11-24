@@ -46,6 +46,15 @@ Opening that address loads the same book, in the same reading mode, for anyone. 
 
 **Limits:** the browser can only download from sites that allow it (CORS headers). GitHub raw files, many CDNs and most object storage with public CORS work; sites that don't allow it show a message suggesting to download the file and open it instead. Files opened from the device can't be shared by link. Share links need MotionReader to be hosted on its own site (any static host); embedded previews that block outside requests or drop the `?open=` part can't use them.
 
+### Find free comics
+
+The home page lists legal places to find something to read, in two groups:
+
+- **Download and open here:** public-domain or openly licensed sources (Comic Book Plus, Digital Comic Museum, Internet Archive, Pepper&Carrot, Wikimedia Commons, *Give My Regards to Black Jack*, Project Gutenberg, Standard Ebooks). Download the file there and open it in MotionReader.
+- **Read free on the official site:** licensed services (WEBTOON, Tapas, MANGA Plus, GlobalComix, Libby, Hoopla). MotionReader only links to them; their pages can't be opened in the reader.
+
+Only official sites are listed; no scan or piracy sites.
+
 ## Controls
 
 | Key | Action |

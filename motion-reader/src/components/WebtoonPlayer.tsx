@@ -13,7 +13,8 @@ import { toggleFullscreen, useIdleChrome, useLatest } from '../lib/hooks';
 import { getPanels } from '../lib/panelDetect';
 import { impact } from '../lib/sound';
 import type { PageImage, Panel, ReadingMode, Settings, VisualBook } from '../types';
-import { ChromeBar, IconButton, ProgressBar, SettingsSheet, SpeedButton } from './Chrome';
+import { ChromeBar, IconButton, ProgressBar, SettingsSheet, ShareButton, SpeedButton } from './Chrome';
+import { shareLinkFor } from '../lib/remote';
 import { Flash, Particles, SpeedLines } from './Effects';
 
 const INTENSE = 0.5;
@@ -379,6 +380,7 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
           <IconButton label={settings.sound ? 'Mute' : 'Unmute'} onClick={() => onSettings({ sound: !settings.sound })}>
             {settings.sound ? <Volume2 size={19} /> : <VolumeX size={19} />}
           </IconButton>
+          {book.sourceUrl && <ShareButton link={shareLinkFor(book.sourceUrl, 'webtoon')} />}
           <IconButton label="Fullscreen" onClick={toggleFullscreen}>
             <Maximize size={18} />
           </IconButton>

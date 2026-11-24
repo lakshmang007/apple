@@ -27,6 +27,25 @@ Open a file (or try a built-in demo) and press play: a virtual camera glides fro
 
 (`cbr`/`rar` aren't supported in the browser — convert to CBZ.)
 
+### Open from a link, and share links
+
+Instead of uploading, paste a link on the home page ("Or open from a link"):
+
+- a direct link to any supported file (PDF, CBZ/ZIP, EPUB, image, TXT), or
+- a web page that shows the comic pages as images (lazy-loaded `data-src` images are picked up; small icons are skipped).
+
+GitHub file pages, Dropbox share links and Google Drive file links are converted to direct downloads automatically.
+
+A book opened from a link gets a **share link** (shown on the ready card, copied by the link button in the reader, and kept in the address bar), for example:
+
+```
+https://your-site.example/?open=https%3A%2F%2Fexample.com%2Fchapter-1.cbz&mode=manga
+```
+
+Opening that address loads the same book, in the same reading mode, for anyone. Nothing is uploaded anywhere: each visitor's browser downloads the file directly.
+
+**Limits:** the browser can only download from sites that allow it (CORS headers). GitHub raw files, many CDNs and most object storage with public CORS work; sites that don't allow it show a message suggesting to download the file and open it instead. Files opened from the device can't be shared by link. Share links need MotionReader to be hosted on its own site (any static host); embedded previews that block outside requests or drop the `?open=` part can't use them.
+
 ## Controls
 
 | Key | Action |

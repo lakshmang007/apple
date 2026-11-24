@@ -17,7 +17,8 @@ import { toggleFullscreen, useIdleChrome, useLatest } from '../lib/hooks';
 import { impact, whoosh } from '../lib/sound';
 import { buildScenes, MOOD_THEMES } from '../lib/textScenes';
 import type { Scene, Settings, TextBook } from '../types';
-import { ChromeBar, IconButton, ProgressBar, SettingsSheet, SpeedButton } from './Chrome';
+import { ChromeBar, IconButton, ProgressBar, SettingsSheet, ShareButton, SpeedButton } from './Chrome';
+import { shareLinkFor } from '../lib/remote';
 import { Particles, SfxBurst, Vignette } from './Effects';
 import { EndCard } from './EndCard';
 
@@ -449,6 +450,7 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
           <IconButton label={settings.sound ? 'Mute' : 'Unmute'} onClick={() => onSettings({ sound: !settings.sound })}>
             {settings.sound ? <Volume2 size={19} /> : <VolumeX size={19} />}
           </IconButton>
+          {book.sourceUrl && <ShareButton link={shareLinkFor(book.sourceUrl)} />}
           <IconButton label="Fullscreen" onClick={toggleFullscreen}>
             <Maximize size={18} />
           </IconButton>

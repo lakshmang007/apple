@@ -25,7 +25,8 @@ import { toggleFullscreen, useElementSize, useIdleChrome, useLatest } from '../l
 import { getPanels } from '../lib/panelDetect';
 import { impact, pageTurn, whoosh } from '../lib/sound';
 import type { PageImage, Panel, ReadingMode, Rect, Settings, VisualBook } from '../types';
-import { ChromeBar, IconButton, ProgressBar, SettingsSheet, SpeedButton } from './Chrome';
+import { ChromeBar, IconButton, ProgressBar, SettingsSheet, ShareButton, SpeedButton } from './Chrome';
+import { shareLinkFor } from '../lib/remote';
 import { Flash, Particles, SpeedLines, Vignette } from './Effects';
 import { EndCard } from './EndCard';
 
@@ -552,6 +553,7 @@ export function ComicPlayer({ book, mode, settings, onSettings, onMode, onExit }
           <IconButton label={settings.sound ? 'Mute' : 'Unmute'} onClick={() => onSettings({ sound: !settings.sound })}>
             {settings.sound ? <Volume2 size={19} /> : <VolumeX size={19} />}
           </IconButton>
+          {book.sourceUrl && <ShareButton link={shareLinkFor(book.sourceUrl, mode)} />}
           <IconButton label="Fullscreen" onClick={toggleFullscreen}>
             <Maximize size={18} />
           </IconButton>

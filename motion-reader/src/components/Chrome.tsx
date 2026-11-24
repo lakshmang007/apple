@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Check, Link2, X } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { EffectsLevel, ReadingMode, Settings, TransitionStyle } from '../types';
 
 export function IconButton({
@@ -391,5 +391,57 @@ export function SettingsSheet({
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+/** Copies text to the clipboard, falling back to a hidden textarea where the async API is refused. */
+export async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
+    ta.remove();
+    return ok;
+  }
+}
+
+/** Player top-bar button that copies a link which reopens this book. */
+export function ShareButton({ link }: { link: string }) {
+  const [copied, setCopied] = useState<'idle' | 'copied' | 'failed'>('idle');
+  useEffect(() => {
+    if (copied === 'idle') return;
+    const t = window.setTimeout(() => setCopied('idle'), 1800);
+    return () => window.clearTimeout(t);
+  }, [copied]);
+  return (
+    <div className="relative">
+      <IconButton
+        label={copied === 'copied' ? 'Link copied' : 'Copy share link'}
+        active={copied === 'copied'}
+        onClick={() => {
+          void copyText(link).then((ok) => setCopied(ok ? 'copied' : 'failed'));
+        }}
+      >
+        {copied === 'copied' ? <Check size={18} /> : <Link2 size={18} />}
+      </IconButton>
+      {copied !== 'idle' && (
+        <div className="absolute right-0 top-12 z-40 whitespace-nowrap bg-white px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-900">
+          {copied === 'copied' ? 'Share link copied' : 'Copy failed — use the address bar'}
+        </div>
+      )}
+    </div>
   );
 }

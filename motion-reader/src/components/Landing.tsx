@@ -3,6 +3,7 @@ import {
   BookOpen,
   Clapperboard,
   FileUp,
+  Link2,
   Mic,
   Play,
   ScanSearch,
@@ -126,13 +127,16 @@ const FORMATS = ['JPG / PNG / WEBP', 'CBZ / ZIP', 'PDF', 'EPUB', 'TXT / MD'];
 
 export function Landing({
   onFiles,
+  onLink,
   onDemo,
 }: {
   onFiles: (files: File[]) => void;
+  onLink: (url: string) => void;
   onDemo: (kind: DemoKind) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
+  const [link, setLink] = useState('');
 
   useEffect(() => {
     let depth = 0;
@@ -168,7 +172,7 @@ export function Landing({
   const pick = () => inputRef.current?.click();
 
   const nav = [
-    { href: '#open', label: 'Open a file' },
+    { href: '#open', label: 'Open a file or link' },
     { href: '#demos', label: 'Demos' },
     { href: '#features', label: 'Features' },
     { href: '#how', label: 'How it works' },
@@ -294,7 +298,7 @@ export function Landing({
               </div>
             </section>
 
-            <section id="open">
+            <section id="open" className="space-y-4">
               <button
                 type="button"
                 onClick={pick}
@@ -321,6 +325,43 @@ export function Landing({
                   ))}
                 </div>
               </button>
+
+              <form
+                className="border border-slate-200 bg-white p-5 sm:p-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (link.trim()) onLink(link.trim());
+                }}
+              >
+                <label htmlFor="link-input" className="text-sm font-bold uppercase tracking-widest text-slate-900">
+                  Or open from a link
+                </label>
+                <p className="mt-1 text-sm text-slate-500">
+                  Paste a link to a PDF, CBZ, EPUB, image or TXT file, or to a web page that shows the comic pages. It
+                  opens without downloading anything yourself, as long as the other site allows it.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    id="link-input"
+                    type="url"
+                    inputMode="url"
+                    required
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    placeholder="https://example.com/my-comic.cbz"
+                    className="min-w-0 flex-1 border border-slate-300 bg-white px-3 py-2.5 font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="flex shrink-0 cursor-pointer items-center justify-center gap-2 bg-slate-900 px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-slate-800"
+                  >
+                    <Link2 size={15} /> Open link
+                  </button>
+                </div>
+                <p className="mt-3 font-mono text-[11px] text-slate-400">
+                  GitHub, Dropbox and Google Drive share links are converted to direct downloads automatically.
+                </p>
+              </form>
             </section>
 
             <section id="demos" className="space-y-3 pt-4">

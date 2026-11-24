@@ -30,6 +30,8 @@ export interface VisualBook {
   title: string;
   pages: PageImage[];
   suggestedMode: ReadingMode;
+  /** The web link the book was opened from, if any (used for share links). */
+  sourceUrl?: string;
 }
 
 export interface Chapter {
@@ -41,6 +43,8 @@ export interface TextBook {
   kind: 'text';
   title: string;
   chapters: Chapter[];
+  /** The web link the book was opened from, if any (used for share links). */
+  sourceUrl?: string;
 }
 
 export type Book = VisualBook | TextBook;

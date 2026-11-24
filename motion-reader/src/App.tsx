@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, Clapperboard, Play, ScrollText, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { BookOpen, Check, Clapperboard, Link2, Play, ScrollText, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { copyText } from './components/Chrome';
 import { ComicPlayer } from './components/ComicPlayer';
 import { Landing, type DemoKind } from './components/Landing';
 import { StoryPlayer } from './components/StoryPlayer';
@@ -8,12 +9,13 @@ import { WebtoonPlayer } from './components/WebtoonPlayer';
 import { demoComic, demoStory, demoWebtoon } from './lib/demo';
 import { useLatest, useSettings } from './lib/hooks';
 import { loadFiles, releaseBook } from './lib/loaders';
+import { linkFromAddress, loadFromUrl, setAddress, shareLinkFor } from './lib/remote';
 import type { Book, ReadingMode } from './types';
 
 type Stage =
   | { name: 'home' }
   | { name: 'loading'; label: string; progress: number }
-  | { name: 'ready'; book: Book }
+  | { name: 'ready'; book: Book; mode?: ReadingMode }
   | { name: 'reading'; book: Book; mode: ReadingMode };
 
 const MODES: Array<{ value: ReadingMode; label: string; hint: string; icon: typeof BookOpen }> = [
@@ -22,16 +24,47 @@ const MODES: Array<{ value: ReadingMode; label: string; hint: string; icon: type
   { value: 'webtoon', label: 'Manhwa / Webtoon', hint: 'Vertical scroll', icon: ScrollText },
 ];
 
+function ShareBox({ link }: { link: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="mt-6">
+      <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Share link</div>
+      <div className="flex">
+        <input
+          id="share-link"
+          readOnly
+          value={link}
+          onFocus={(e) => e.currentTarget.select()}
+          aria-label="Share link"
+          className="min-w-0 flex-1 border border-r-0 border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-600"
+        />
+        <button
+          type="button"
+          onClick={() => void copyText(link).then(setCopied)}
+          className="flex shrink-0 cursor-pointer items-center gap-1.5 border border-slate-900 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
+        >
+          {copied ? <Check size={14} /> : <Link2 size={14} />} {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <p className="mt-1.5 text-xs text-slate-500">Anyone with this link opens the same book. Nothing is uploaded.</p>
+    </div>
+  );
+}
+
 function ReadyCard({
   book,
+  initialMode,
   onStart,
   onClose,
 }: {
   book: Book;
+  initialMode?: ReadingMode;
   onStart: (mode: ReadingMode) => void;
   onClose: () => void;
 }) {
-  const [mode, setMode] = useState<ReadingMode>(book.kind === 'visual' ? book.suggestedMode : 'comic');
+  const [mode, setMode] = useState<ReadingMode>(
+    initialMode ?? (book.kind === 'visual' ? book.suggestedMode : 'comic'),
+  );
   const words =
     book.kind === 'text'
       ? book.chapters.reduce((n, c) => n + c.paragraphs.join(' ').split(/\s+/).length, 0)
@@ -107,6 +140,10 @@ function ReadyCard({
           </p>
         )}
 
+        {book.sourceUrl && (
+          <ShareBox link={shareLinkFor(book.sourceUrl, book.kind === 'visual' ? mode : undefined)} />
+        )}
+
         <button
           type="button"
           onClick={() => onStart(mode)}
@@ -138,6 +175,31 @@ export default function App() {
     }
   }, []);
 
+  const onLink = useCallback(async (link: string, mode?: ReadingMode) => {
+    setError('');
+    setStage({ name: 'loading', label: 'Opening link', progress: 0 });
+    try {
+      const book = await loadFromUrl(link, (label, progress) =>
+        setStage({ name: 'loading', label, progress }),
+      );
+      setStage({ name: 'ready', book, mode });
+      if (book.sourceUrl) setAddress(book.sourceUrl, mode);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not open this link');
+      setStage({ name: 'home' });
+      setAddress(null);
+    }
+  }, []);
+
+  // A shared address (?open=<link>&mode=manga) opens that book straight away.
+  const openedFromAddress = useRef(false);
+  useEffect(() => {
+    if (openedFromAddress.current) return;
+    openedFromAddress.current = true;
+    const shared = linkFromAddress();
+    if (shared) void onLink(shared.url, shared.mode);
+  }, [onLink]);
+
   const onDemo = useCallback(async (kind: DemoKind) => {
     setError('');
     if (kind === 'story') {
@@ -160,6 +222,7 @@ export default function App() {
     const cur = stageRef.current;
     if (cur.name === 'ready' || cur.name === 'reading') releaseBook(cur.book);
     setStage({ name: 'home' });
+    setAddress(null);
   }, [stageRef]);
 
   const exit = useCallback(() => {
@@ -168,8 +231,13 @@ export default function App() {
   }, [closeBook]);
 
   const setMode = useCallback(
-    (mode: ReadingMode) => setStage((s) => (s.name === 'reading' ? { ...s, mode } : s)),
-    [],
+    (mode: ReadingMode) => {
+      const cur = stageRef.current;
+      if (cur.name !== 'reading') return;
+      setStage({ ...cur, mode });
+      if (cur.book.sourceUrl) setAddress(cur.book.sourceUrl, mode);
+    },
+    [stageRef],
   );
 
   if (stage.name === 'reading') {
@@ -204,7 +272,7 @@ export default function App() {
 
   return (
     <>
-      <Landing onFiles={onFiles} onDemo={onDemo} />
+      <Landing onFiles={onFiles} onLink={onLink} onDemo={onDemo} />
 
       <AnimatePresence>
         {stage.name === 'loading' && (
@@ -233,8 +301,12 @@ export default function App() {
           <ReadyCard
             key="ready"
             book={stage.book}
+            initialMode={stage.mode}
             onClose={closeBook}
-            onStart={(mode) => setStage({ name: 'reading', book: stage.book, mode })}
+            onStart={(mode) => {
+              setStage({ name: 'reading', book: stage.book, mode });
+              if (stage.book.sourceUrl) setAddress(stage.book.sourceUrl, stage.book.kind === 'visual' ? mode : undefined);
+            }}
           />
         )}
       </AnimatePresence>

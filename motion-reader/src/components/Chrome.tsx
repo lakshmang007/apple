@@ -24,6 +24,8 @@ export function IconButton({
       title={label}
       aria-label={label}
       disabled={disabled}
+      // Don't take focus on mouse clicks, so a later Space press goes to the play/pause shortcut.
+      onMouseDown={(e) => e.preventDefault()}
       onClick={(e) => {
         e.stopPropagation();
         onClick();

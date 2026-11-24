@@ -62,16 +62,20 @@ function findSfx(text: string): string[] {
   return [...new Set(out)].slice(0, 2);
 }
 
-const QUOTE_RE = /("[^"]+"|“[^”]+”|«[^»]+»|「[^」]+」|'[^']{2,}'(?=[\s,.!?;:]|$)|‘[^’]+’(?=[\s,.!?;:]|$))/g;
+// A straight single quote only opens a quote at the start or after whitespace / an opening
+// bracket or dash (captured in group 2), so plural possessives ("the dogs' bowls") are not dialogue.
+const QUOTE_RE =
+  /("[^"]+"|“[^”]+”|«[^»]+»|「[^」]+」|‘[^’]+’(?=[\s,.!?;:]|$))|(^|[\s(\[—–-])('[^']{2,}')(?=[\s,.!?;:]|$)/g;
 
 export function splitQuotes(text: string): ScenePart[] {
   const parts: ScenePart[] = [];
   let last = 0;
   for (const m of text.matchAll(QUOTE_RE)) {
-    const idx = m.index ?? 0;
+    const quote = m[1] ?? m[3];
+    const idx = (m.index ?? 0) + (m[2]?.length ?? 0);
     if (idx > last) parts.push({ text: text.slice(last, idx).trim(), quoted: false });
-    parts.push({ text: m[0].slice(1, -1).trim(), quoted: true });
-    last = idx + m[0].length;
+    parts.push({ text: quote.slice(1, -1).trim(), quoted: true });
+    last = idx + quote.length;
   }
   if (last < text.length) parts.push({ text: text.slice(last).trim(), quoted: false });
   return parts.filter((p) => p.text.length > 0);

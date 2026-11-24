@@ -396,6 +396,8 @@ export function ComicPlayer({ book, mode, settings, onSettings, onMode, onExit }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      // Space on a focused button belongs to that button, not to play/pause.
+      if (e.key === ' ' && e.target instanceof HTMLButtonElement) return;
       const fwd = rtl ? 'ArrowLeft' : 'ArrowRight';
       const back = rtl ? 'ArrowRight' : 'ArrowLeft';
       if (e.key === ' ' || e.key === 'k') {

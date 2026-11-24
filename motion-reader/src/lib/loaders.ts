@@ -1,5 +1,5 @@
 import type { Book, Chapter, PageImage, ReadingMode, TextBook, VisualBook } from '../types';
-import { loadImage } from './panelDetect';
+import { forgetImage, loadImage } from './panelDetect';
 
 export type Progress = (label: string, fraction: number) => void;
 
@@ -39,8 +39,10 @@ function visualBook(title: string, pages: PageImage[], hint: string): VisualBook
 /* Text                                                                */
 /* ------------------------------------------------------------------ */
 
+// "Chapter 3", "PART IV", "Book One: …", "# Title", or a bare "Prologue" — but not prose
+// that merely starts with one of these words ("Part of me wanted to stay.").
 const HEADING_RE =
-  /^\s*(#{1,3}\s+.+|(chapter|part|book|prologue|epilogue|interlude|act)\b[^\n]{0,80})\s*$/i;
+  /^\s*(#{1,3}\s+.+|(chapter|part|book|act)\s+(\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b[^\n]{0,80}|(prologue|epilogue|interlude)\b([^\n]{0,80}[^.!?\n])?)\s*$/i;
 
 export function parsePlainText(raw: string, title: string): TextBook {
   const text = raw.replace(/\r\n?/g, '\n').replace(/ /g, ' ');
@@ -264,13 +266,33 @@ async function loadArchive(file: File, progress: Progress): Promise<Book> {
   return visualBook(stripExt(file.name), pages, file.name);
 }
 
+function isBookFile(f: File) {
+  return (
+    /\.(cbz|zip|epub|pdf|cbr|rar|cb7|7z)$/i.test(f.name) ||
+    f.type === 'application/pdf' ||
+    TEXT_RE.test(f.name)
+  );
+}
+
+/** Frees a loaded book's page images (blob URLs and detection caches). Demo books are kept. */
+export function releaseBook(book: Book) {
+  if (book.kind !== 'visual') return;
+  for (const p of book.pages) {
+    if (p.id.startsWith('demo-')) continue;
+    forgetImage(p.src);
+    URL.revokeObjectURL(p.src);
+  }
+}
+
 export async function loadFiles(files: File[], progress: Progress): Promise<Book> {
   if (files.length === 0) throw new Error('No files selected');
   const images = files
     .filter((f) => f.type.startsWith('image/') || IMAGE_RE.test(f.name))
     .sort((a, b) => naturalSort(a.name, b.name));
 
-  if (images.length > 0 && images.length === files.length) {
+  // Stray non-book files next to page images (Thumbs.db, .DS_Store, notes…) are ignored.
+  const bookFile = files.find((f) => isBookFile(f));
+  if (images.length > 0 && (images.length === files.length || !bookFile)) {
     const pages: PageImage[] = [];
     for (let i = 0; i < images.length; i++) {
       progress('Loading images', i / images.length);
@@ -280,7 +302,7 @@ export async function loadFiles(files: File[], progress: Progress): Promise<Book
     return visualBook(title, pages, images.map((f) => f.name).join(' '));
   }
 
-  const file = files[0];
+  const file = bookFile ?? files[0];
   const name = file.name.toLowerCase();
   if (/\.(cbz|zip)$/.test(name)) return loadArchive(file, progress);
   if (name.endsWith('.epub')) return loadEpub(file, progress);

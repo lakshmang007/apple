@@ -193,6 +193,8 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
   const [sfx, setSfx] = useState({ text: '', n: 0 });
   const [chromeVisible, pokeChrome] = useIdleChrome(playing && !settingsOpen);
   const voices = useVoices();
+  // Read through a ref so a late 'voiceschanged' doesn't restart the current utterance.
+  const voicesRef = useLatest(voices);
   const shakeX = useMotionValue(0);
 
   const scene = scenes[idx];
@@ -242,33 +244,44 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
     }
     const { spoken, words } = sceneWords(scene);
     const u = new SpeechSynthesisUtterance(spoken);
-    const voice = voices.find((v) => v.voiceURI === settings.voiceURI);
+    const voice = voicesRef.current.find((v) => v.voiceURI === settings.voiceURI);
     if (voice) u.voice = voice;
     u.rate = Math.max(0.6, Math.min(1.8, speed));
     u.pitch = scene.mood === 'fear' || scene.mood === 'sad' ? 0.9 : scene.mood === 'joy' ? 1.1 : 1;
     let cancelled = false;
+    let advanced = false;
+    const advance = () => {
+      if (cancelled || advanced) return;
+      advanced = true;
+      setSpokenWord(-1);
+      window.setTimeout(() => !cancelled && next(), 450);
+    };
     u.onboundary = (e) => {
       if (e.name && e.name !== 'word') return;
       let wi = 0;
       while (wi + 1 < words.length && words[wi + 1].start <= e.charIndex) wi++;
       setSpokenWord(wi);
     };
-    u.onend = () => {
-      if (cancelled) return;
-      setSpokenWord(-1);
-      window.setTimeout(() => !cancelled && next(), 450);
+    u.onend = advance;
+    // A failed voice must not freeze the story; cancel/interrupt come from our own cleanup.
+    u.onerror = (e) => {
+      if (e.error !== 'canceled' && e.error !== 'interrupted') advance();
     };
     // Small delay so the text animation leads the voice.
+    const delay = scene.kind === 'title' ? 500 : 250;
     const t = window.setTimeout(() => {
       speechSynthesis.cancel();
       speechSynthesis.speak(u);
-    }, scene.kind === 'title' ? 500 : 250);
+    }, delay);
+    // Fallback if no end/error event ever arrives (e.g. Chrome's long-utterance cutoff).
+    const fallback = window.setTimeout(advance, delay + 3000 + ((words.length / (2.5 * u.rate)) * 2000));
     return () => {
       cancelled = true;
       window.clearTimeout(t);
+      window.clearTimeout(fallback);
       speechSynthesis.cancel();
     };
-  }, [scene, narrating, playing, finished, voices, settings.voiceURI, speed, next]);
+  }, [scene, narrating, playing, finished, voicesRef, settings.voiceURI, speed, next]);
 
   useEffect(() => () => {
     if (canSpeak) speechSynthesis.cancel();
@@ -288,6 +301,8 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      // Space on a focused button belongs to that button, not to play/pause.
+      if (e.key === ' ' && e.target instanceof HTMLButtonElement) return;
       if (e.key === ' ' || e.key === 'k') {
         e.preventDefault();
         setPlaying((p) => !p);

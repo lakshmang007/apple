@@ -201,8 +201,9 @@ function cut(
     }
     return;
   }
+  // At the depth limit, keep every remaining row band in one box rather than dropping them.
   const y0 = rows[0][0];
-  const y1 = rows[0][1];
+  const y1 = rows[rows.length - 1][1];
   const cols = segments(
     (x) => colInk(r, x, y0, y1),
     box.x0,
@@ -340,4 +341,12 @@ export function getPanels(src: string, opts: DetectOptions): Promise<Panel[]> {
     panelCache.set(key, p);
   }
   return p;
+}
+
+/** Drops cached decodes and detection results for an image that is no longer used. */
+export function forgetImage(src: string) {
+  imageCache.delete(src);
+  for (const key of panelCache.keys()) {
+    if (key.startsWith(`${src}|`)) panelCache.delete(key);
+  }
 }

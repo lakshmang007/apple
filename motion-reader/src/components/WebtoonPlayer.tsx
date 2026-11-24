@@ -46,7 +46,8 @@ function Segment({ page, panel, id, pageIndex, scrollRef, settings, onEnter }: S
   const range = fx === 'full' ? 5 : fx === 'subtle' ? 2.5 : 0;
   const parallax = useTransform(scrollYProgress, [0, 1], [`${-range}%`, `${range}%`]);
   const focus = useTransform(scrollYProgress, [0, 0.22, 0.78, 1], fx === 'off' ? [1, 1, 1, 1] : [0.3, 1, 1, 0.3]);
-  const inView = useInView(ref, { root: scrollRef, amount: 0.55 });
+  // "Entered" = crosses the middle of the screen, so segments taller than the viewport count too.
+  const inView = useInView(ref, { root: scrollRef, margin: '-45% 0px -45% 0px' });
   const enter = useLatest(onEnter);
 
   useEffect(() => {
@@ -210,6 +211,8 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      // Space on a focused button belongs to that button, not to play/pause.
+      if (e.key === ' ' && e.target instanceof HTMLButtonElement) return;
       if (e.key === ' ' || e.key === 'k') {
         e.preventDefault();
         setPlaying((p) => !p);
@@ -254,6 +257,8 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
           className="absolute inset-0 overflow-y-auto overflow-x-hidden no-scrollbar"
           onWheel={hold}
           onTouchStart={hold}
+          onTouchMove={hold}
+          onTouchEnd={hold}
           onScroll={(e) => {
             const el = e.currentTarget;
             setProgress(el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight));

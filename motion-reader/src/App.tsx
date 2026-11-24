@@ -6,8 +6,8 @@ import { Landing, type DemoKind } from './components/Landing';
 import { StoryPlayer } from './components/StoryPlayer';
 import { WebtoonPlayer } from './components/WebtoonPlayer';
 import { demoComic, demoStory, demoWebtoon } from './lib/demo';
-import { useSettings } from './lib/hooks';
-import { loadFiles } from './lib/loaders';
+import { useLatest, useSettings } from './lib/hooks';
+import { loadFiles, releaseBook } from './lib/loaders';
 import type { Book, ReadingMode } from './types';
 
 type Stage =
@@ -154,10 +154,18 @@ export default function App() {
     }
   }, []);
 
+  // Leaving a book frees its page images; the same file can simply be opened again.
+  const stageRef = useLatest(stage);
+  const closeBook = useCallback(() => {
+    const cur = stageRef.current;
+    if (cur.name === 'ready' || cur.name === 'reading') releaseBook(cur.book);
+    setStage({ name: 'home' });
+  }, [stageRef]);
+
   const exit = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen();
-    setStage({ name: 'home' });
-  }, []);
+    closeBook();
+  }, [closeBook]);
 
   const setMode = useCallback(
     (mode: ReadingMode) => setStage((s) => (s.name === 'reading' ? { ...s, mode } : s)),
@@ -228,7 +236,7 @@ export default function App() {
           <ReadyCard
             key="ready"
             book={stage.book}
-            onClose={() => setStage({ name: 'home' })}
+            onClose={closeBook}
             onStart={(mode) => setStage({ name: 'reading', book: stage.book, mode })}
           />
         )}

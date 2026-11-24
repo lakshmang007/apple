@@ -17,41 +17,35 @@ export function EndCard({
       {show && (
         <motion.div
           data-chrome
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-xs"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
           <motion.div
-            className="glass w-full max-w-sm rounded-3xl p-8 text-center"
-            initial={{ scale: 0.85, y: 30 }}
-            animate={{ scale: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+            className="w-full max-w-sm border border-slate-200 bg-white p-8 text-slate-800"
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.3 }}
           >
-            <motion.div
-              className="sfx-text mb-2 text-7xl text-yellow-300"
-              initial={{ rotate: -12, scale: 2.4, opacity: 0 }}
-              animate={{ rotate: -4, scale: 1, opacity: 1 }}
-              transition={{ delay: 0.15, type: 'spring', stiffness: 260, damping: 14 }}
-            >
-              THE END!
-            </motion.div>
-            <p className="mb-6 text-sm text-white/65">You finished “{title}”.</p>
-            <div className="flex justify-center gap-3">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Finished</div>
+            <div className="mt-1 font-display text-3xl font-bold text-slate-900">The end</div>
+            <p className="mb-6 mt-2 text-sm text-slate-500">You finished “{title}”.</p>
+            <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={onRestart}
-                className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:scale-105"
+                className="flex cursor-pointer items-center gap-2 bg-slate-900 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-slate-800"
               >
-                <RotateCcw size={16} /> Read again
+                <RotateCcw size={14} /> Read again
               </button>
               <button
                 type="button"
                 onClick={onExit}
-                className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/20"
+                className="flex cursor-pointer items-center gap-2 border border-slate-300 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-900 transition-colors hover:border-slate-900"
               >
-                <House size={16} /> Home
+                <House size={14} /> Home
               </button>
             </div>
           </motion.div>

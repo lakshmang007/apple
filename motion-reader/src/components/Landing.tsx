@@ -3,14 +3,12 @@ import {
   BookOpen,
   Clapperboard,
   FileUp,
-  Lock,
   Mic,
-  MousePointerClick,
+  Play,
   ScanSearch,
   ScrollText,
-  Sparkles,
+  Type,
   Upload,
-  Wand2,
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +16,7 @@ import { demoComic } from '../lib/demo';
 import { useElementSize } from '../lib/hooks';
 import { ACCEPT } from '../lib/loaders';
 import { getPanels } from '../lib/panelDetect';
+import { Logo } from './Logo';
 import type { PageImage, Panel } from '../types';
 
 export type DemoKind = 'comic' | 'manga' | 'webtoon' | 'story';
@@ -81,37 +80,34 @@ function HeroPreview() {
   }, [rect, page, W, H, pw, ph, x, y, s]);
 
   return (
-    <div className="relative">
-      <div className="absolute -inset-6 rounded-[40px] bg-gradient-to-tr from-accent/40 via-accent-2/30 to-accent-3/30 blur-3xl" />
-      <div
-        ref={frameRef}
-        className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl"
-      >
-        {page && W > 0 && (
-          <motion.div className="absolute left-0 top-0" style={{ x, y, scale: s, originX: 0, originY: 0, width: page.width, height: page.height }}>
-            <img src={page.src} alt="Demo comic page" className="h-full w-full" draggable={false} />
-            <motion.div
-              className="absolute rounded-sm"
-              animate={{
-                left: `${rect.x * 100}%`,
-                top: `${rect.y * 100}%`,
-                width: `${rect.w * 100}%`,
-                height: `${rect.h * 100}%`,
-                opacity: i === 0 ? 0 : 1,
-              }}
-              transition={{ duration: 1.1, ease: [0.65, 0, 0.35, 1] }}
-              style={{ boxShadow: '0 0 0 9000px rgba(6,6,12,0.8)' }}
-            />
-          </motion.div>
-        )}
-        {!page && (
-          <div className="flex h-full items-center justify-center text-sm text-white/40">Rendering preview…</div>
-        )}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.6)_100%)]" />
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-semibold text-white/85 backdrop-blur">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-          {i === 0 ? 'Page overview' : `Panel ${i} of ${panels.length}`}
+    <div ref={frameRef} className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950">
+      {page && W > 0 && (
+        <motion.div
+          className="absolute left-0 top-0"
+          style={{ x, y, scale: s, originX: 0, originY: 0, width: page.width, height: page.height }}
+        >
+          <img src={page.src} alt="Demo comic page being animated panel by panel" className="h-full w-full" draggable={false} />
+          <motion.div
+            className="absolute"
+            animate={{
+              left: `${rect.x * 100}%`,
+              top: `${rect.y * 100}%`,
+              width: `${rect.w * 100}%`,
+              height: `${rect.h * 100}%`,
+              opacity: i === 0 ? 0 : 1,
+            }}
+            transition={{ duration: 1.1, ease: [0.65, 0, 0.35, 1] }}
+            style={{ boxShadow: '0 0 0 9000px rgba(2,6,23,0.78)' }}
+          />
+        </motion.div>
+      )}
+      {!page && (
+        <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-wider text-slate-500">
+          Rendering preview…
         </div>
+      )}
+      <div className="absolute bottom-0 left-0 bg-white px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-900">
+        {page ? (i === 0 ? 'Page overview' : `Panel ${i} / ${panels.length}`) : '—'}
       </div>
     </div>
   );
@@ -122,7 +118,7 @@ const FEATURES = [
   { icon: Clapperboard, title: 'Cinematic camera', text: 'Smooth zooms, pans across wide shots, spotlight focus and page transitions turn static pages into motion.' },
   { icon: Zap, title: 'Action that hits', text: 'Busy, high-energy panels get speed lines, impact flashes, screen shake and sound effects.' },
   { icon: ScrollText, title: 'Manhwa & webtoon mode', text: 'Long strips are split into beats that glide in with parallax, focus dimming and hands-free auto-scroll.' },
-  { icon: Wand2, title: 'Living novels', text: 'Text books become kinetic scenes: mood-based colour & weather, dialogue bubbles and SFX that slam on screen.' },
+  { icon: BookOpen, title: 'Living novels', text: 'Text books become kinetic scenes: mood-based colour & weather, dialogue bubbles and SFX that slam on screen.' },
   { icon: Mic, title: 'Read-aloud narration', text: 'Built-in text-to-speech reads your book with word-by-word highlighting, and turns the page for you.' },
 ];
 
@@ -171,12 +167,15 @@ export function Landing({
 
   const pick = () => inputRef.current?.click();
 
-  return (
-    <div className="relative min-h-full overflow-x-hidden">
-      <div className="halftone pointer-events-none absolute inset-0 opacity-50" />
-      <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-accent/25 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-40 top-40 h-[520px] w-[520px] rounded-full bg-accent-2/25 blur-[120px]" />
+  const nav = [
+    { href: '#open', label: 'Open a file' },
+    { href: '#demos', label: 'Demos' },
+    { href: '#features', label: 'Features' },
+    { href: '#how', label: 'How it works' },
+  ];
 
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50 text-slate-800 lg:flex-row">
       <input
         ref={inputRef}
         type="file"
@@ -190,186 +189,212 @@ export function Landing({
         }}
       />
 
-      <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-accent to-accent-2 shadow-lg shadow-accent/30">
-            <Sparkles size={18} />
+      <aside className="hidden w-72 shrink-0 flex-col bg-slate-950 text-white lg:flex">
+        <div className="border-b border-slate-800 p-8">
+          <div className="mb-4">
+            <Logo inverted />
           </div>
-          <span className="font-comic text-2xl tracking-wider">MotionReader</span>
+          <div className="text-xs font-bold uppercase tracking-widest opacity-60">MotionReader</div>
+          <div className="text-lg font-light text-slate-200">Animated reader</div>
         </div>
-        <div className="flex items-center gap-1 text-sm text-white/70">
-          <a href="#how" className="rounded-full px-3 py-1.5 hover:bg-white/10 hover:text-white">How it works</a>
-          <a href="#features" className="hidden rounded-full px-3 py-1.5 hover:bg-white/10 hover:text-white sm:block">Features</a>
+        <nav className="flex-1 space-y-1 px-4 py-8">
+          {nav.map((n) => (
+            <a
+              key={n.href}
+              href={n.href}
+              className="block px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-900 hover:text-white"
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
+        <div className="border-t border-slate-800 p-8 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          Runs in your browser.
+          <br />
+          Files stay on this device.
         </div>
-      </nav>
+      </aside>
 
-      <header className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-6 lg:grid-cols-[1.05fr_1fr] lg:pt-14">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/75"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-accent-3" /> Comics · Manga · Manhwa · Novels
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="text-[clamp(40px,6.4vw,76px)] font-extrabold leading-[1.02] tracking-tight"
-          >
-            Don't just read it.
-            <br />
-            <span className="text-gradient">Watch it move.</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 }}
-            className="mt-5 max-w-xl text-lg leading-relaxed text-white/65"
-          >
-            MotionReader turns any comic, manga, manhwa or book into an animated, cinematic experience — a camera that
-            glides panel to panel, action that shakes the screen, and stories that change colour with their mood.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-8 flex flex-wrap gap-3"
-          >
+      <div className="flex h-full flex-1 flex-col overflow-hidden">
+        <header className="flex h-20 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-10">
+          <div className="flex items-center gap-3">
+            <div className="lg:hidden">
+              <Logo size={32} />
+            </div>
+            <span className="text-sm font-bold uppercase tracking-widest text-slate-900 sm:text-base">
+              Read in motion
+            </span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="hidden text-right sm:block">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Formats</div>
+              <div className="text-xs font-semibold text-slate-700">Images · CBZ · PDF · EPUB · TXT</div>
+            </div>
             <button
               type="button"
               onClick={pick}
-              className="flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-ink shadow-[0_10px_40px_rgba(255,77,109,0.35)] transition hover:scale-[1.03]"
+              className="cursor-pointer whitespace-nowrap bg-slate-900 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-slate-800 sm:px-6"
             >
-              <Upload size={18} /> Open a file
+              Open a file
             </button>
-            <button
-              type="button"
-              onClick={() => onDemo('comic')}
-              className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 font-semibold transition hover:bg-white/10"
-            >
-              <Sparkles size={18} /> Watch the demo
-            </button>
-          </motion.div>
-          <div className="mt-6 flex items-center gap-2 text-xs text-white/45">
-            <Lock size={13} /> Runs 100% in your browser — files never leave your device.
           </div>
-        </div>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.6 }}>
-          <HeroPreview />
-        </motion.div>
-      </header>
+        </header>
 
-      <section className="relative z-10 mx-auto max-w-6xl px-5 pb-16">
-        <button
-          type="button"
-          onClick={pick}
-          className={`group flex w-full flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed px-6 py-14 text-center transition ${
-            drag ? 'border-accent bg-accent/10' : 'border-white/15 bg-white/[0.03] hover:border-white/30 hover:bg-white/[0.05]'
-          }`}
-        >
-          <motion.div
-            animate={drag ? { scale: 1.15, rotate: -6 } : { scale: 1, rotate: 0 }}
-            className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-accent to-accent-2 shadow-lg shadow-accent/30"
-          >
-            <FileUp size={28} />
-          </motion.div>
-          <div>
-            <div className="text-xl font-bold">{drag ? 'Drop it!' : 'Drop your comic, manga, manhwa or book here'}</div>
-            <div className="mt-1 text-sm text-white/55">
-              or click to browse — select several images at once to read them as pages
-            </div>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {FORMATS.map((f) => (
-              <span key={f} className="rounded-full bg-white/8 px-3 py-1 text-xs font-medium text-white/70">
-                {f}
-              </span>
-            ))}
-          </div>
-        </button>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-6xl px-5 pb-20">
-        <h2 className="mb-2 text-2xl font-bold">Try it instantly</h2>
-        <p className="mb-6 text-white/55">No file handy? Pick a built-in demo.</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {(
-            [
-              { kind: 'comic', icon: Clapperboard, title: 'Comic', text: 'Panel-by-panel camera with action effects.', grad: 'from-rose-500 to-orange-400' },
-              { kind: 'manga', icon: BookOpen, title: 'Manga mode', text: 'Same pages, read right-to-left.', grad: 'from-fuchsia-500 to-violet-500' },
-              { kind: 'webtoon', icon: ScrollText, title: 'Webtoon / Manhwa', text: 'Vertical strip with parallax & auto-scroll.', grad: 'from-sky-500 to-cyan-400' },
-              { kind: 'story', icon: Wand2, title: 'Novel', text: 'Kinetic text, moods, SFX and narration.', grad: 'from-amber-400 to-pink-500' },
-            ] as const
-          ).map((d, k) => (
-            <motion.button
-              key={d.kind}
-              type="button"
-              onClick={() => onDemo(d.kind)}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: k * 0.06 }}
-              whileHover={{ y: -6 }}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-panel p-5 text-left"
-            >
-              <div className={`absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br ${d.grad} opacity-30 blur-2xl transition group-hover:opacity-60`} />
-              <div className={`mb-4 grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ${d.grad}`}>
-                <d.icon size={20} />
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-10">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <section className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
+              <div className="flex min-w-0 flex-col border border-slate-200 bg-white p-6 sm:p-8">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Comics · Manga · Manhwa · Books
+                </div>
+                <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-balance text-slate-900 sm:text-5xl">
+                  Every page, animated panel by panel.
+                </h1>
+                <p className="mt-4 max-w-prose text-slate-600">
+                  Open a comic, manga, manhwa or book. MotionReader finds the panels, moves a camera through them in
+                  reading order, and adds motion to the action. Novels play as scenes with read-aloud narration.
+                </p>
+                <dl className="mt-6 divide-y divide-slate-100 border-y border-slate-100 text-sm">
+                  {[
+                    ['Panel detection', 'On this device'],
+                    ['Reading order', 'Left → right · Right → left · Vertical'],
+                    ['Narration', 'Built-in text-to-speech'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5">
+                      <dt className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{k}</dt>
+                      <dd className="font-medium text-slate-700">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={pick}
+                    className="flex cursor-pointer items-center gap-2 bg-slate-900 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-slate-800"
+                  >
+                    <Upload size={15} /> Open a file
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDemo('comic')}
+                    className="flex cursor-pointer items-center gap-2 border border-slate-900 px-6 py-3 text-xs font-bold uppercase tracking-widest text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
+                  >
+                    <Play size={15} /> Watch the demo
+                  </button>
+                </div>
               </div>
-              <div className="font-semibold">{d.title}</div>
-              <div className="mt-1 text-sm text-white/55">{d.text}</div>
-              <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-white/80">
-                <MousePointerClick size={14} /> Play demo
+              <div className="flex min-w-0 flex-col border border-slate-200 bg-white">
+                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Live preview</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Demo comic · page 1</span>
+                </div>
+                <div className="flex flex-1 items-center p-4">
+                  <HeroPreview />
+                </div>
               </div>
-            </motion.button>
-          ))}
-        </div>
-      </section>
+            </section>
 
-      <section id="features" className="relative z-10 mx-auto max-w-6xl px-5 pb-20">
-        <h2 className="mb-8 text-center text-3xl font-bold">
-          Reading, <span className="text-gradient">animated</span>
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, k) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ delay: (k % 3) * 0.08 }}
-              className="rounded-3xl border border-white/10 bg-white/[0.03] p-6"
-            >
-              <f.icon className="mb-4 text-accent" size={24} />
-              <div className="mb-1.5 font-semibold">{f.title}</div>
-              <p className="text-sm leading-relaxed text-white/55">{f.text}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+            <section id="open">
+              <button
+                type="button"
+                onClick={pick}
+                className={`flex w-full cursor-pointer flex-col items-center justify-center gap-4 border-2 border-dashed px-6 py-12 text-center transition-colors ${
+                  drag ? 'border-slate-900 bg-slate-100' : 'border-slate-300 bg-white hover:border-slate-900'
+                }`}
+              >
+                <div className="flex h-12 w-12 items-center justify-center bg-slate-900 text-white">
+                  <FileUp size={22} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold uppercase tracking-widest text-slate-900">
+                    {drag ? 'Drop to open' : 'Drop a comic, manga, manhwa or book'}
+                  </div>
+                  <div className="mt-1 text-sm text-slate-500">
+                    or click to browse. Select several images at once to read them as pages.
+                  </div>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {FORMATS.map((f) => (
+                    <span key={f} className="border border-slate-200 px-2.5 py-1 font-mono text-[11px] text-slate-600">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            </section>
 
-      <section id="how" className="relative z-10 mx-auto max-w-6xl px-5 pb-24">
-        <h2 className="mb-8 text-center text-3xl font-bold">How it works</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            ['1', 'Open anything', 'Drop page images, a CBZ/ZIP archive, a PDF, an EPUB or a plain-text book.'],
-            ['2', 'We analyse it', 'Panels and gutters are detected on-device; text is split into scenes and tagged with a mood.'],
-            ['3', 'Press play', 'Sit back while the camera, effects and narration bring it to life — or step through at your own pace.'],
-          ].map(([n, t, d]) => (
-            <div key={n} className="relative rounded-3xl border border-white/10 bg-panel p-6">
-              <div className="sfx-text mb-3 text-5xl text-yellow-300">{n}</div>
-              <div className="mb-1 font-semibold">{t}</div>
-              <p className="text-sm text-white/55">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            <section id="demos" className="space-y-3 pt-4">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900">Demos</h2>
+                <span className="text-xs text-slate-500">No file needed</span>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {(
+                  [
+                    { kind: 'comic', icon: Clapperboard, title: 'Comic', text: 'Camera moves panel by panel, with action effects.' },
+                    { kind: 'manga', icon: BookOpen, title: 'Manga', text: 'The same pages, read right to left.' },
+                    { kind: 'webtoon', icon: ScrollText, title: 'Webtoon / Manhwa', text: 'A vertical strip with parallax and auto-scroll.' },
+                    { kind: 'story', icon: Type, title: 'Novel', text: 'Text scenes with moods, dialogue and narration.' },
+                  ] as const
+                ).map((d) => (
+                  <button
+                    key={d.kind}
+                    type="button"
+                    onClick={() => onDemo(d.kind)}
+                    className="group flex cursor-pointer flex-col border border-slate-200 bg-white p-5 text-left transition-colors hover:border-slate-900"
+                  >
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center bg-slate-100 text-slate-900 transition-colors group-hover:bg-slate-900 group-hover:text-white">
+                      <d.icon size={18} />
+                    </div>
+                    <div className="text-sm font-bold uppercase tracking-wider text-slate-900">{d.title}</div>
+                    <div className="mt-1 flex-1 text-sm text-slate-500">{d.text}</div>
+                    <div className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-900">
+                      Play demo →
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
 
-      <footer className="relative z-10 border-t border-white/10 py-8 text-center text-xs text-white/40">
-        MotionReader · Everything runs locally in your browser. Only open content you have the right to read.
-      </footer>
+            <section id="features" className="space-y-3 pt-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900">Features</h2>
+              <div className="grid gap-px border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
+                {FEATURES.map((f) => (
+                  <div key={f.title} className="min-w-0 bg-white p-6">
+                    <f.icon className="mb-4 text-slate-900" size={20} />
+                    <div className="mb-1.5 font-semibold text-slate-900">{f.title}</div>
+                    <p className="text-sm leading-relaxed text-slate-500">{f.text}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section id="how" className="space-y-3 pt-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900">How it works</h2>
+              <div className="grid gap-px border border-slate-200 bg-slate-200 md:grid-cols-3">
+                {[
+                  ['Open a file', 'Page images, a CBZ or ZIP archive, a PDF, an EPUB or a plain-text book.'],
+                  ['It gets analysed', 'Panels and gutters are found on your device; text is split into scenes and given a mood.'],
+                  ['Press play', 'The camera, effects and narration run on their own, or step through at your own pace.'],
+                ].map(([t, d], k) => (
+                  <div key={t} className="min-w-0 bg-white p-6">
+                    <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      Step {k + 1}
+                    </div>
+                    <div className="mb-1 font-semibold text-slate-900">{t}</div>
+                    <p className="text-sm text-slate-500">{d}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-6 font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              <span>MotionReader</span>
+              <span>Only open content you have the right to read</span>
+            </footer>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -63,7 +63,7 @@ function Segment({ page, panel, id, pageIndex, scrollRef, settings, onEnter }: S
         whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
         viewport={{ root: scrollRef, amount: 0.12 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full overflow-hidden rounded-md shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+        className="relative w-full overflow-hidden"
         style={{ aspectRatio: aspect }}
       >
         <motion.div className="absolute inset-0" style={{ y: parallax, scale: range ? 1 + range / 50 : 1 }}>
@@ -81,7 +81,7 @@ function Segment({ page, panel, id, pageIndex, scrollRef, settings, onEnter }: S
           />
         </motion.div>
         {settings.showPanels && (
-          <div className="pointer-events-none absolute inset-0 border-2 border-accent-3/80">
+          <div className="pointer-events-none absolute inset-0 border-2 border-amber-400">
             <span className="absolute left-0 top-0 bg-black/80 px-1.5 text-[10px] font-bold">
               {id} {panel.intensity > INTENSE ? '⚡' : ''}
             </span>
@@ -239,7 +239,7 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-ink">
+    <div className="fixed inset-0 overflow-hidden bg-ink text-white">
       <motion.div
         className="pointer-events-none absolute inset-0"
         animate={{
@@ -270,7 +270,7 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9 }}
-                className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50"
+                className="text-[10px] font-bold uppercase tracking-widest text-slate-400"
               >
                 Webtoon mode
               </motion.div>
@@ -278,7 +278,7 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
                 initial={{ opacity: 0, scale: 0.8, filter: 'blur(12px)' }}
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 transition={{ duration: 1.1, delay: 0.2 }}
-                className="mt-3 font-comic text-6xl tracking-wide text-gradient sm:text-7xl"
+                className="mt-3 max-w-xl text-balance font-display text-4xl font-bold tracking-tight text-white sm:text-5xl"
               >
                 {book.title}
               </motion.h1>
@@ -286,18 +286,18 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="mt-6 text-sm text-white/55"
+                className="mt-4 text-sm text-slate-400"
               >
                 {playing ? 'Auto-scrolling… scroll anytime to take over' : 'Scroll down or press play'}
               </motion.p>
               <motion.div
-                className="mt-8 h-12 w-7 rounded-full border-2 border-white/30"
+                className="mt-8 h-12 w-7 border border-white/30"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2 }}
               >
                 <motion.div
-                  className="mx-auto mt-2 h-2.5 w-1 rounded-full bg-white/70"
+                  className="mx-auto mt-2 h-2.5 w-px bg-white/70"
                   animate={{ y: [0, 16, 0] }}
                   transition={{ duration: 1.6, repeat: Infinity }}
                 />
@@ -311,7 +311,7 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
                   return (
                     <div
                       key={pg.id}
-                      className="w-full animate-pulse rounded-md bg-white/5"
+                      className="w-full animate-pulse bg-white/5"
                       style={{ aspectRatio: pg.width / pg.height }}
                     />
                   );
@@ -333,26 +333,26 @@ export function WebtoonPlayer({ book, settings, onSettings, onMode, onExit }: Pr
 
             <footer className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
               <motion.div
-                initial={{ scale: 2.2, rotate: -14, opacity: 0 }}
-                whileInView={{ scale: 1, rotate: -4, opacity: 1 }}
+                initial={{ y: 16, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ root: scrollRef, amount: 0.6 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-                className="sfx-text text-7xl text-yellow-300 sm:text-8xl"
+                transition={{ duration: 0.4 }}
+                className="font-display text-4xl font-bold tracking-tight text-white"
               >
-                THE END!
+                The end
               </motion.div>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={restart}
-                  className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:scale-105"
+                  className="flex cursor-pointer items-center gap-2 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-900 transition-colors hover:bg-slate-200"
                 >
                   <RotateCcw size={16} /> Read again
                 </button>
                 <button
                   type="button"
                   onClick={onExit}
-                  className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/20"
+                  className="flex cursor-pointer items-center gap-2 border border-white/30 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:border-white"
                 >
                   <House size={16} /> Home
                 </button>

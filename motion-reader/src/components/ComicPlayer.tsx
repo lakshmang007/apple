@@ -193,10 +193,10 @@ function PageCamera({ page, panels, cur, W, H, settings, rtl, onMove, onArrive, 
         src={page.src}
         alt={page.name}
         draggable={false}
-        className="block h-full w-full select-none rounded-[2px] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+        className="block h-full w-full select-none shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
       />
       <motion.div
-        className="pointer-events-none absolute rounded-[3px]"
+        className="pointer-events-none absolute"
         initial={false}
         animate={{
           left: `${rect.x * 100}%`,
@@ -214,7 +214,7 @@ function PageCamera({ page, panels, cur, W, H, settings, rtl, onMove, onArrive, 
         panels?.map((p, i) => (
           <div
             key={i}
-            className={`pointer-events-none absolute border-4 ${i === cur ? 'border-accent' : 'border-accent-3/70'}`}
+            className={`pointer-events-none absolute border-4 ${i === cur ? 'border-amber-400' : 'border-white/70'}`}
             style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%`, width: `${p.w * 100}%`, height: `${p.h * 100}%` }}
           >
             <span className="absolute left-0 top-0 rounded-br bg-black/80 px-2.5 py-0.5 text-2xl font-bold text-white">
@@ -461,7 +461,7 @@ export function ComicPlayer({ book, mode, settings, onSettings, onMode, onExit }
   return (
     <div
       ref={stageRef}
-      className="fixed inset-0 select-none overflow-hidden bg-ink"
+      className="fixed inset-0 select-none overflow-hidden bg-ink text-white"
       style={{ perspective: 1400, touchAction: 'pan-y' }}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
@@ -533,7 +533,7 @@ export function ComicPlayer({ book, mode, settings, onSettings, onMode, onExit }
       {effectsOn && <Vignette strength={fullFx ? 0.7 : 0.5} />}
 
       {!panels && (
-        <div className="pointer-events-none absolute left-1/2 top-6 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-xs text-white/80">
+        <div className="pointer-events-none absolute left-1/2 top-20 -translate-x-1/2 bg-white px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-900">
           Detecting panels…
         </div>
       )}

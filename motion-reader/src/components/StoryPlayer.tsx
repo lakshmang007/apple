@@ -75,7 +75,7 @@ function TitleCard({ scene, fx }: { scene: Scene; fx: boolean }) {
           {label}
         </motion.div>
       )}
-      <h1 className="font-comic text-[clamp(44px,8.5vw,112px)] leading-[0.95] tracking-wide text-white drop-shadow-[0_6px_0_rgba(0,0,0,0.45)]">
+      <h1 className="text-balance font-display text-[clamp(36px,6.5vw,84px)] font-bold leading-[1.02] tracking-tight text-white">
         {[...title].map((ch, i) => (
           <motion.span
             key={i}
@@ -89,7 +89,7 @@ function TitleCard({ scene, fx }: { scene: Scene; fx: boolean }) {
         ))}
       </h1>
       <motion.div
-        className="mx-auto mt-6 h-1 w-40 rounded-full"
+        className="mx-auto mt-6 h-px w-24"
         style={{ background: theme.accent }}
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
@@ -334,7 +334,7 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
 
   return (
     <div
-      className="fixed inset-0 select-none overflow-hidden bg-ink"
+      className="fixed inset-0 select-none overflow-hidden bg-ink text-white"
       onPointerDown={(e) => (down.current = { x: e.clientX, y: e.clientY })}
       onPointerUp={(e) => {
         const d = down.current;
@@ -431,11 +431,11 @@ export function StoryPlayer({ book, settings, onSettings, onExit }: Props) {
             key={scene.mood}
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="hidden rounded-full bg-black/30 px-3 py-1 text-xs font-semibold sm:inline"
+            className="hidden border border-white/20 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider sm:inline"
             style={{ color: theme.accent }}
             title="Detected mood"
           >
-            {theme.emoji} {theme.label}
+            {theme.label}
           </motion.span>
           {canSpeak && (
             <IconButton

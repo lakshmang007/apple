@@ -25,6 +25,8 @@ View your app in AI Studio: https://ai.studio/apps/b7d7b866-4e18-4cb5-b568-ac7ea
 
 The [`motion-reader/`](motion-reader/) folder contains a separate web app that converts comics, manga, manhwa/webtoons and books into animated, cinematic reading experiences in the browser. See [motion-reader/README.md](motion-reader/README.md).
 
+**Live site:** https://lakshmang007.github.io/apple/ (published by [`.github/workflows/deploy-motion-reader.yml`](.github/workflows/deploy-motion-reader.yml) on every push to `main` that changes `motion-reader/`).
+
 ```bash
 cd motion-reader && npm install && npm run dev
 ```

@@ -58,6 +58,12 @@ Opening that address loads the same book, in the same reading mode, for anyone. 
 
 On touch screens: tap the left/right edge or swipe to move, tap the middle to play/pause.
 
+## Live site
+
+https://lakshmang007.github.io/apple/ is built and published by the GitHub Actions workflow in `.github/workflows/deploy-motion-reader.yml` whenever `main` changes. Share links use this address, e.g. `https://lakshmang007.github.io/apple/?open=<link>&mode=manga`.
+
+To enable it on a fresh copy of the repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**, then run the workflow from the Actions tab (or push to `main`).
+
 ## Run locally
 
 ```bash

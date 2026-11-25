@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  /* Comic lettering is only used for sound effects inside the reader. */
+  --font-comic: 'Bangers', Impact, 'Arial Black', system-ui, sans-serif;
+  --font-serif: 'Literata', Georgia, 'Times New Roman', serif;
+  --color-ink: #020617;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.halftone {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.animated-gradient {
+  background-size: 220% 220%;
+  animation: gradient-shift 16s ease-in-out infinite;
+}
+
+@keyframes speedlines-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: rotate(1.2deg) scale(1.03);
+  }
+}
+.speedlines {
+  animation: speedlines-flicker 0.18s steps(2) infinite;
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(var(--r, 0deg));
+  }
+}
+.float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.sfx-text {
+  font-family: var(--font-comic);
+  letter-spacing: 0.04em;
+  -webkit-text-stroke: 3px #0b0b12;
+  paint-order: stroke fill;
+  text-shadow:
+    5px 5px 0 #0b0b12,
+    0 0 40px rgba(255, 255, 255, 0.25);
+}
+
+input[type='range'] {
+  accent-color: #0f172a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-gradient,
+  .speedlines,
+  .float {
+    animation: none;
+  }
+}

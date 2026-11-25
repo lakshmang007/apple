@@ -41,6 +41,21 @@ button {
   background-size: 14px 14px;
 }
 
+/* Comic halftone dots that drift slowly, for the home page background. */
+.halftone-drift {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.09) 1.2px, transparent 1.6px);
+  background-size: 18px 18px;
+  animation: halftone-drift 40s linear infinite;
+}
+@keyframes halftone-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 180px 180px;
+  }
+}
+
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -101,6 +116,7 @@ input[type='range'] {
 
 @media (prefers-reduced-motion: reduce) {
   .animated-gradient,
+  .halftone-drift,
   .speedlines,
   .float {
     animation: none;

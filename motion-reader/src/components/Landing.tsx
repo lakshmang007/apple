@@ -246,8 +246,9 @@ export function Landing({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-10">
-          <div className="mx-auto max-w-6xl space-y-6">
+        <main className="relative flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-10">
+          <div aria-hidden className="halftone-drift pointer-events-none absolute inset-0 opacity-70" />
+          <div className="relative mx-auto max-w-6xl space-y-6">
             <section className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
               <div className="flex min-w-0 flex-col border border-slate-200 bg-white p-6 sm:p-8">
                 <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">

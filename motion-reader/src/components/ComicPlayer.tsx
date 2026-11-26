@@ -215,7 +215,7 @@ function PageCamera({ page, panels, cur, W, H, settings, rtl, onMove, onArrive, 
         panels?.map((p, i) => (
           <div
             key={i}
-            className={`pointer-events-none absolute border-4 ${i === cur ? 'border-amber-400' : 'border-white/70'}`}
+            className={`pointer-events-none absolute border-4 ${i === cur ? 'border-amber-400' : 'border-sky-500'}`}
             style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%`, width: `${p.w * 100}%`, height: `${p.h * 100}%` }}
           >
             <span className="absolute left-0 top-0 rounded-br bg-black/80 px-2.5 py-0.5 text-2xl font-bold text-white">
